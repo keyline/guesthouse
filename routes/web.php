@@ -15,13 +15,32 @@ use App\Http\Controllers\Auth\CustomerSessionController;
 use App\Http\Controllers\Auth\RegisteredCustomerController;
 use App\Http\Controllers\Customer\DashboardController as CustomerDashboardController;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('landing');
 });
 
-Route::redirect('/login', '/admin/login')->name('login');
+Route::get('/login', function () {
+    return redirect()->route('admin.login');
+})->name('login');
+
+Route::get('/admin', function () {
+    return Auth::check()
+        ? redirect()->route('admin.dashboard')
+        : redirect()->route('admin.login');
+});
+
+Route::get('/guest', function () {
+    return redirect()->route('customer.login');
+});
+
+Route::get('/account', function () {
+    return Auth::check()
+        ? redirect()->route('customer.dashboard')
+        : redirect()->route('customer.login');
+});
 
 Route::middleware('guest')->group(function () {
     Route::get('/admin/login', [AdminSessionController::class, 'create'])->name('admin.login');
@@ -60,4 +79,6 @@ Route::prefix('account')
         Route::post('/logout', [CustomerSessionController::class, 'destroy'])->name('logout');
 });
 
-Route::redirect('/dashboard', '/admin/dashboard');
+Route::get('/dashboard', function () {
+    return redirect()->route('admin.dashboard');
+});
