@@ -1,0 +1,27 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+
+class Amenity extends Model
+{
+    /**
+     * @var list<string>
+     */
+    protected $fillable = [
+        'name',
+        'icon',
+    ];
+
+    public function properties(): BelongsToMany
+    {
+        return $this->belongsToMany(Property::class)->withTimestamps();
+    }
+
+    public function roomTypes(): BelongsToMany
+    {
+        return $this->belongsToMany(RoomType::class, 'amenity_room_type')->withTimestamps();
+    }
+}

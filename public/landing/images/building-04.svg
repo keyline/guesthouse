@@ -1,0 +1,17 @@
+<svg id="building-04-2" data-name="building-04" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="40" height="40" viewBox="0 0 40 40">
+  <defs>
+    <clipPath id="clip-path">
+      <rect id="building-04" width="40" height="40" fill="none" stroke="#a05702" stroke-width="1" style="mix-blend-mode: normal;isolation: isolate"/>
+    </clipPath>
+  </defs>
+  <g id="building-04-3" data-name="building-04" clip-path="url(#clip-path)" style="mix-blend-mode: normal;isolation: isolate">
+    <rect id="building-04-4" data-name="building-04" width="40" height="40" fill="none" stroke="#a05702" stroke-width="1" style="mix-blend-mode: normal;isolation: isolate"/>
+    <g id="elements" transform="translate(3.333 36.667)" style="mix-blend-mode: normal;isolation: isolate">
+      <path id="Vector_5716" data-name="Vector 5716" d="M13.333,0V20c0,5.516-1.151,6.667-6.667,6.667H0" transform="matrix(1, 0, 0, 1, 1.667, -33.333)" fill="none" stroke="#a05702" stroke-linejoin="round" stroke-width="3" style="mix-blend-mode: normal;isolation: isolate"/>
+      <path id="Vector_5718" data-name="Vector 5718" d="M0,0H10" transform="matrix(1, 0, 0, 1, 5, -16.667)" fill="none" stroke="#a05702" stroke-linejoin="round" stroke-width="3" style="mix-blend-mode: normal;isolation: isolate"/>
+      <path id="Vector" d="M0,0H1.667M0,5H1.667" transform="matrix(1, 0, 0, 1, 25.833, -10)" fill="none" stroke="#a05702" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" style="mix-blend-mode: normal;isolation: isolate"/>
+      <path id="Vector_6062" data-name="Vector 6062" d="M20,5c0-2.357,0-3.536-.7-4.268S17.469,0,15.212,0H14.14C12.515,0,11.7,0,11.084.454s-.9,1.252-1.447,2.848L.8,28.868C.094,30.9-.258,31.915.219,32.624s1.511.709,3.579.709H20Z" transform="matrix(1, 0, 0, 1, 0, -33.333)" fill="none" stroke="#a05702" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" style="mix-blend-mode: normal;isolation: isolate"/>
+      <path id="Vector_6063" data-name="Vector 6063" d="M0,0,6.316,1.974C9.7,3.031,11.39,3.559,12.362,4.881s.971,3.094.971,6.638v5.148c0,1.571,0,2.357-.488,2.845S11.571,20,10,20H0" transform="matrix(1, 0, 0, 1, 20, -20)" fill="none" stroke="#a05702" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" style="mix-blend-mode: normal;isolation: isolate"/>
+    </g>
+  </g>
+</svg>

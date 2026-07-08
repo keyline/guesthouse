@@ -1,0 +1,310 @@
+/*
+   EENNRA Hotel Management System - Dynamic Theme Variables
+   Professional Enterprise ERP Design System
+   Version: 1.0
+
+   Change the --primary-* colors below to instantly update the entire theme.
+   All colors are carefully chosen for accessibility (WCAG AA compliant).
+*/
+
+:root {
+  /* ============================================
+     PRIMARY COLORS (Theme - Edit these!)
+     ============================================ */
+
+  --primary-50: #f0f9ff;    /* Sky-50 - Lightest backgrounds */
+  --primary-100: #e0f2fe;   /* Sky-100 */
+  --primary-200: #bae6fd;   /* Sky-200 */
+  --primary-300: #7dd3fc;   /* Sky-300 */
+  --primary-400: #38bdf8;   /* Sky-400 */
+  --primary-500: #0ea5e9;   /* Sky-500 - Primary action buttons */
+  --primary-600: #0284c7;   /* Sky-600 - Main brand color */
+  --primary-700: #0369a1;   /* Sky-700 - Hover state */
+  --primary-800: #075985;   /* Sky-800 - Active state */
+  --primary-900: #0c3d66;   /* Sky-900 - Darkest */
+
+  /* ============================================
+     NEUTRAL COLORS (Grays)
+     ============================================ */
+
+  --slate-50: #f8fafc;      /* Near white, subtle backgrounds */
+  --slate-100: #f1f5f9;     /* Light gray backgrounds */
+  --slate-200: #e2e8f0;     /* Dividers, borders */
+  --slate-300: #cbd5e1;     /* Input borders, secondary borders */
+  --slate-400: #94a3b8;     /* Secondary text, disabled */
+  --slate-500: #64748b;     /* Tertiary text */
+  --slate-600: #475569;     /* Sidebar, dark backgrounds */
+  --slate-700: #334155;     /* Secondary text, labels */
+  --slate-800: #1e293b;     /* Body text */
+  --slate-900: #0f172a;     /* Primary text, headings */
+
+  /* ============================================
+     SEMANTIC COLORS (Status indicators)
+     ============================================ */
+
+  --success-50: #f0fdf4;
+  --success-100: #dcfce7;
+  --success-200: #bbf7d0;
+  --success-300: #86efac;
+  --success-400: #4ade80;
+  --success-500: #22c55e;   /* Green - Active, success, confirmed */
+  --success-600: #16a34a;
+  --success-700: #15803d;
+
+  --warning-50: #fffbeb;
+  --warning-100: #fef3c7;
+  --warning-200: #fde68a;
+  --warning-300: #fcd34d;
+  --warning-400: #fbbf24;
+  --warning-500: #f59e0b;   /* Amber - Warning, pending, draft */
+  --warning-600: #d97706;
+  --warning-700: #b45309;
+
+  --danger-50: #fef2f2;
+  --danger-100: #fee2e2;
+  --danger-200: #fecaca;
+  --danger-300: #fca5a5;
+  --danger-400: #f87171;
+  --danger-500: #ef4444;    /* Red - Error, delete, danger */
+  --danger-600: #dc2626;
+  --danger-700: #b91c1c;
+
+  --info-50: #eff6ff;
+  --info-100: #dbeafe;
+  --info-200: #bfdbfe;
+  --info-300: #93c5fd;
+  --info-400: #60a5fa;
+  --info-500: #3b82f6;      /* Blue - Information, alerts */
+  --info-600: #2563eb;
+  --info-700: #1d4ed8;
+
+  /* ============================================
+     TYPOGRAPHY
+     ============================================ */
+
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                 "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Monaco", "Courier New", monospace;
+
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-lg: 16px;
+  --text-xl: 18px;
+  --text-2xl: 20px;
+
+  --font-regular: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  --font-extrabold: 800;
+
+  --line-tight: 1.2;
+  --line-normal: 1.5;
+  --line-relaxed: 1.75;
+
+  /* ============================================
+     SPACING (Compact, multiples of 4px)
+     ============================================ */
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+
+  /* ============================================
+     BORDER RADIUS
+     ============================================ */
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-full: 9999px;
+
+  /* ============================================
+     SHADOWS
+     ============================================ */
+
+  --shadow-none: none;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+
+  /* ============================================
+     TRANSITIONS & ANIMATIONS
+     ============================================ */
+
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+  --timing-ease: ease-in-out;
+
+  /* ============================================
+     Z-INDEX SCALE
+     ============================================ */
+
+  --z-dropdown: 50;
+  --z-sticky: 20;
+  --z-fixed: 20;
+  --z-modal-backdrop: 40;
+  --z-modal: 50;
+  --z-tooltip: 60;
+  --z-notification: 70;
+
+  /* ============================================
+     SIZES (Compact, enterprise)
+     ============================================ */
+
+  --header-height: 56px;
+  --sidebar-width: 260px;
+  --sidebar-width-collapsed: 80px;
+  --button-height: 36px;
+  --button-height-sm: 28px;
+  --input-height: 36px;
+  --table-row-height: 44px;
+  --modal-max-width: 500px;
+
+  /* ============================================
+     FOCUS STATES (Accessibility)
+     ============================================ */
+
+  --focus-ring: 0 0 0 3px rgba(6, 163, 225, 0.1);
+  --focus-ring-offset: 2px;
+}
+
+/* ============================================
+   ALTERNATIVE COLOR PALETTES
+   Uncomment to switch theme
+   ============================================ */
+
+/* EMERALD (Hospitality, Green) */
+/*
+:root {
+  --primary-50: #f0fdf4;
+  --primary-100: #dcfce7;
+  --primary-200: #bbf7d0;
+  --primary-300: #86efac;
+  --primary-400: #4ade80;
+  --primary-500: #22c55e;
+  --primary-600: #16a34a;
+  --primary-700: #15803d;
+  --primary-800: #166534;
+  --primary-900: #134e4a;
+}
+*/
+
+/* INDIGO (Premium, Luxury) */
+/*
+:root {
+  --primary-50: #eef2ff;
+  --primary-100: #e0e7ff;
+  --primary-200: #c7d2fe;
+  --primary-300: #a5b4fc;
+  --primary-400: #818cf8;
+  --primary-500: #6366f1;
+  --primary-600: #4f46e5;
+  --primary-700: #4338ca;
+  --primary-800: #3730a3;
+  --primary-900: #312e81;
+}
+*/
+
+/* PURPLE (Creative, Modern) */
+/*
+:root {
+  --primary-50: #faf5ff;
+  --primary-100: #f3e8ff;
+  --primary-200: #e9d5ff;
+  --primary-300: #d8b4fe;
+  --primary-400: #c084fc;
+  --primary-500: #a855f7;
+  --primary-600: #9333ea;
+  --primary-700: #7e22ce;
+  --primary-800: #6b21a8;
+  --primary-900: #581c87;
+}
+*/
+
+/* AMBER (Warm, Welcoming) */
+/*
+:root {
+  --primary-50: #fffbeb;
+  --primary-100: #fef3c7;
+  --primary-200: #fde68a;
+  --primary-300: #fcd34d;
+  --primary-400: #fbbf24;
+  --primary-500: #f59e0b;
+  --primary-600: #d97706;
+  --primary-700: #b45309;
+  --primary-800: #92400e;
+  --primary-900: #78350f;
+}
+*/
+
+/* ============================================
+   LIGHT MODE (Default)
+   ============================================ */
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+  }
+}
+
+/* ============================================
+   DARK MODE
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Swap text colors for dark mode */
+    --slate-900: #f8fafc;    /* Light text on dark */
+    --slate-800: #f1f5f9;
+    --slate-700: #e2e8f0;
+    --slate-600: #cbd5e1;
+    --slate-50: #1e293b;     /* Dark backgrounds */
+    --slate-100: #334155;
+    --slate-200: #475569;
+
+    color-scheme: dark;
+  }
+}
+
+/* ============================================
+   UTILITY: Apply variables to base elements
+   ============================================ */
+
+:root {
+  font-family: var(--font-family);
+  font-size: var(--text-base);
+  line-height: var(--line-normal);
+  color: var(--slate-900);
+  background-color: var(--slate-50);
+}
+
+/* ============================================
+   QUICK REFERENCE
+   ============================================ */
+
+/*
+   To use these variables in your CSS:
+
+   button {
+     background-color: var(--primary-600);
+     color: white;
+     padding: var(--space-3) var(--space-4);
+     border-radius: var(--radius-md);
+     transition: background-color var(--duration-fast) var(--timing-ease);
+   }
+
+   button:hover {
+     background-color: var(--primary-700);
+   }
+
+   /* Change theme: update primary colors in :root above */
+*/
