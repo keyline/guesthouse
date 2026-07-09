@@ -48,23 +48,36 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35M10.5 18a7.5 7.5 0 100-15 7.5 7.5 0 000 15z"></path>
                     </svg>
                 </span>
-                <input type="search" placeholder="Search bookings, hotels, guests..." class="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-100">
+                <input type="search" placeholder="Search bookings, properties, guests..." class="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-100">
             </label>
         </div>
 
         <div class="ml-auto flex shrink-0 items-center gap-2">
             @if ($showPropertySwitcher)
-                <form method="POST" action="{{ route('admin.property-context.update') }}" class="hidden lg:block">
-                    @csrf
-                    <select name="property_id" onchange="this.form.submit()" class="h-10 max-w-[230px] rounded-xl border border-slate-200 bg-white px-3 text-sm font-black text-slate-700 shadow-sm outline-none transition hover:border-sky-300 focus:border-sky-400 focus:ring-2 focus:ring-sky-100">
-                        @if ($adminUser->hasRole(\App\Models\User::ROLE_SUPER_ADMIN))
-                            <option value="0" @selected($selectedContextPropertyId === null)>All Hotels</option>
-                        @endif
-                        @foreach ($contextProperties as $property)
-                            <option value="{{ $property->id }}" @selected($selectedContextPropertyId === $property->id)>{{ $property->name }}</option>
-                        @endforeach
-                    </select>
-                </form>
+                <div class="relative hidden lg:block">
+                    <form method="POST" action="{{ route('admin.property-context.update') }}" class="contents">
+                        @csrf
+                        <select name="property_id" onchange="this.form.submit()" class="h-10 w-64 appearance-none truncate rounded-xl border border-slate-200 bg-white px-3 pr-8 text-sm font-black text-slate-700 shadow-sm outline-none transition hover:border-sky-300 focus:border-sky-400 focus:ring-2 focus:ring-sky-100">
+                            @if ($adminUser->hasRole(\App\Models\User::ROLE_SUPER_ADMIN))
+                                <option value="0" @selected($selectedContextPropertyId === null)>✓ All Properties</option>
+                            @endif
+                            @foreach ($contextProperties as $property)
+                                @php
+                                    $statusLabel = match($property->status) {
+                                        'active' => '✓ Active',
+                                        'draft' => '⊙ Draft',
+                                        'inactive' => '✕ Inactive',
+                                        default => $property->status,
+                                    };
+                                @endphp
+                                <option value="{{ $property->id }}" @selected($selectedContextPropertyId === $property->id)>{{ $property->locationDropdownLabel() }} — {{ $statusLabel }}</option>
+                            @endforeach
+                        </select>
+                    </form>
+                    <svg class="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                    </svg>
+                </div>
             @endif
 
             <button type="button" class="admin-icon-button hidden sm:inline-flex" title="Notifications">

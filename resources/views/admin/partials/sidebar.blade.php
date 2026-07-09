@@ -32,14 +32,15 @@
                     'type' => 'group',
                     'label' => 'Inventory',
                     'key' => 'inventory',
-                    'patterns' => ['admin.properties.*', 'admin.rooms.*', 'admin.room-types.*', 'admin.availability.*'],
-                    'icon' => 'hotel',
+                    'patterns' => ['admin.properties.*', 'admin.rooms.*', 'admin.room-types.*', 'admin.availability.*', 'admin.amenities.*', 'admin.banquets.*'],
+                    'icon' => 'property',
                     'children' => [
-                        ['label' => 'Hotels', 'route' => 'admin.properties.index', 'patterns' => ['admin.properties.*']],
+                        ['label' => 'Properties', 'route' => 'admin.properties.index', 'patterns' => ['admin.properties.*']],
                         ['label' => 'Rooms', 'route' => 'admin.rooms.index', 'patterns' => ['admin.rooms.*']],
                         ['label' => 'Room Types', 'route' => 'admin.room-types.index', 'patterns' => ['admin.room-types.*']],
+                        ['label' => 'Banquet Halls', 'route' => 'admin.banquets.index', 'patterns' => ['admin.banquets.*']],
                         ['label' => 'Rates & Availability', 'route' => 'admin.availability.index', 'patterns' => ['admin.availability.*']],
-                        ['label' => 'Amenities', 'route' => null, 'patterns' => []],
+                        ['label' => 'Amenities', 'route' => 'admin.amenities.index', 'patterns' => ['admin.amenities.*']],
                         ['label' => 'Policies', 'route' => null, 'patterns' => []],
                     ],
                 ],
@@ -112,7 +113,7 @@
     $icons = [
         'dashboard' => '<path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>',
         'booking' => '<path d="M6 2a1 1 0 011 1v1h10V3a1 1 0 112 0v1h1a2 2 0 012 2v14a2 2 0 01-2 2H4a2 2 0 01-2-2L2 6a2 2 0 012-2h1V3a1 1 0 011-1zm14 8H4v10h16V10z"/>',
-        'hotel' => '<path d="M3 21V4a1 1 0 011-1h10a1 1 0 011 1v17h2v-9h3v9h1v2H2v-2h1zm4-14v2h2V7H7zm0 4v2h2v-2H7zm0 4v2h2v-2H7zm5-8v2h2V7h-2zm0 4v2h2v-2h-2zm0 4v2h2v-2h-2z"/>',
+        'property' => '<path d="M3 21V4a1 1 0 011-1h10a1 1 0 011 1v17h2v-9h3v9h1v2H2v-2h1zm4-14v2h2V7H7zm0 4v2h2v-2H7zm0 4v2h2v-2H7zm5-8v2h2V7h-2zm0 4v2h2v-2h-2zm0 4v2h2v-2h-2z"/>',
         'users' => '<path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zM8 11c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>',
         'campaign' => '<path d="M3 11v2h4l5 5V6l-5 5H3zm13.5 1c0-1.77-1-3.29-2.5-4.03v8.05c1.5-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>',
         'chart' => '<path d="M5 9.2h3V19H5V9.2zM10.5 5h3v14h-3V5zM16 12h3v7h-3v-7z"/>',
@@ -126,7 +127,7 @@
             <span class="admin-brand-mark">E</span>
             <span class="admin-brand-text min-w-0">
                 <span class="block text-[11px] font-black uppercase tracking-[0.24em] text-sky-300">EENNRA</span>
-                <span class="mt-0.5 block truncate text-sm font-black">Hotel ERP</span>
+                <span class="mt-0.5 block truncate text-sm font-black">Property ERP</span>
             </span>
         </a>
 
@@ -178,13 +179,6 @@
     </nav>
 
     <div class="border-t border-white/10 p-3">
-        <div class="mb-2 flex items-center gap-3 rounded-xl bg-white/5 p-2.5">
-            <span class="admin-status-dot h-2.5 w-2.5 rounded-full bg-emerald-400"></span>
-            <span class="admin-sidebar-footer-text min-w-0">
-                <span class="block text-[10px] font-black uppercase tracking-wide text-slate-500">System</span>
-                <span class="block text-xs font-bold text-slate-300">Online</span>
-            </span>
-        </div>
         @auth
             <form method="POST" action="{{ route('admin.logout') }}">
                 @csrf

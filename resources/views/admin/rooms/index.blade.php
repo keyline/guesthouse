@@ -75,8 +75,7 @@
                             <td class="px-5 py-4 text-slate-600">{{ collect([$room->is_smoking ? 'Smoking' : null, $room->is_accessible ? 'Accessible' : null])->filter()->join(', ') ?: '-' }}</td>
                             <td class="px-5 py-4">
                                 <div class="flex gap-2">
-                                    <a href="{{ route('admin.rooms.show', $room) }}" class="font-bold text-slate-900">Open</a>
-                                    <a href="{{ route('admin.rooms.edit', $room) }}" class="font-bold text-slate-600">Edit</a>
+                                    <a href="{{ route('admin.rooms.edit', $room) }}" class="font-bold text-slate-900">Edit</a>
                                 </div>
                             </td>
                         </tr>

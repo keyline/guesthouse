@@ -50,11 +50,15 @@ class AdminPropertyManagementTest extends TestCase
     public function test_admin_can_create_property_with_amenities(): void
     {
         $admin = $this->adminUser();
+        $amenityIds = Amenity::query()
+            ->whereIn('name', ['Wi-Fi', 'Parking', 'Air Conditioning'])
+            ->pluck('id')
+            ->all();
 
         $this->actingAs($admin)
             ->post(route('admin.properties.store'), $this->propertyPayload([
                 'name' => 'Lake View Guest House',
-                'amenities' => ['Wi-Fi', 'Parking', 'Air Conditioning'],
+                'amenities' => $amenityIds,
             ]))
             ->assertRedirect();
 
@@ -77,15 +81,15 @@ class AdminPropertyManagementTest extends TestCase
         $admin = $this->adminUser();
         $property = Property::query()->create($this->propertyPayload(['name' => 'Old Property Name']));
 
-        Amenity::query()->create(['name' => 'Wi-Fi']);
+        $banquetHall = Amenity::query()->where('name', 'Banquet Hall')->firstOrFail();
 
         $this->actingAs($admin)
             ->put(route('admin.properties.update', $property), $this->propertyPayload([
                 'name' => 'New Property Name',
                 'city' => 'Durgapur',
-                'amenities' => ['Banquet Hall'],
+                'amenities' => [$banquetHall->id],
             ]))
-            ->assertRedirect(route('admin.properties.show', $property));
+            ->assertRedirect(route('admin.properties.edit', $property));
 
         $this->assertDatabaseHas('properties', [
             'id' => $property->id,
@@ -107,12 +111,115 @@ class AdminPropertyManagementTest extends TestCase
                 'name' => 'Browser Test Property 2',
                 'amenities' => [null, null, null, null, null, null],
             ]))
-            ->assertRedirect(route('admin.properties.show', $property));
+            ->assertRedirect(route('admin.properties.edit', $property));
 
         $this->assertDatabaseHas('properties', [
             'id' => $property->id,
             'name' => 'Browser Test Property 2',
         ]);
+    }
+
+    public function test_admin_can_toggle_property_between_draft_and_active(): void
+    {
+        $admin = $this->adminUser();
+        $property = Property::query()->create($this->propertyPayload([
+            'name' => 'Toggle Status Property',
+            'status' => Property::STATUS_DRAFT,
+        ]));
+
+        $this->actingAs($admin)
+            ->post(route('admin.properties.toggle-status', $property))
+            ->assertRedirect();
+
+        $this->assertSame(Property::STATUS_ACTIVE, $property->fresh()->status);
+        $this->assertNotNull($property->fresh()->published_at);
+
+        $this->actingAs($admin)
+            ->post(route('admin.properties.toggle-status', $property))
+            ->assertRedirect();
+
+        $this->assertSame(Property::STATUS_DRAFT, $property->fresh()->status);
+        $this->assertNull($property->fresh()->published_at);
+    }
+
+    public function test_admin_can_toggle_property_home_page_visibility(): void
+    {
+        $admin = $this->adminUser();
+        $property = Property::query()->create($this->propertyPayload([
+            'name' => 'Home Toggle Property',
+            'show_on_home' => false,
+        ]));
+
+        $this->actingAs($admin)
+            ->post(route('admin.properties.toggle-home', $property))
+            ->assertRedirect();
+
+        $this->assertTrue($property->fresh()->show_on_home);
+
+        $this->actingAs($admin)
+            ->post(route('admin.properties.toggle-home', $property))
+            ->assertRedirect();
+
+        $this->assertFalse($property->fresh()->show_on_home);
+    }
+
+    public function test_home_page_featured_cards_use_marked_properties(): void
+    {
+        Property::query()->create($this->propertyPayload([
+            'name' => 'Featured Guest House',
+            'property_type' => Property::TYPE_GUEST_HOUSE,
+            'show_on_home' => true,
+        ]));
+
+        Property::query()->create($this->propertyPayload([
+            'name' => 'Dropdown Only Guest House',
+            'property_type' => Property::TYPE_GUEST_HOUSE,
+            'show_on_home' => false,
+        ]));
+
+        $this->get('/')
+            ->assertOk()
+            ->assertViewHas('guestHouseProperties', fn ($properties) => $properties->pluck('name')->all() === [
+                'Dropdown Only Guest House',
+                'Featured Guest House',
+            ])
+            ->assertViewHas('guestHouseFeaturedProperties', fn ($properties) => $properties->pluck('name')->all() === [
+                'Featured Guest House',
+            ]);
+    }
+
+    public function test_super_admin_can_manage_amenity_master(): void
+    {
+        $admin = $this->adminUser();
+
+        $this->actingAs($admin)
+            ->post(route('admin.amenities.store'), [
+                'name' => 'Conference Wi-Fi',
+                'icon' => 'wifi',
+                'category' => 'connectivity',
+                'sort_order' => 5,
+                'is_active' => '1',
+            ])
+            ->assertRedirect(route('admin.amenities.index'));
+
+        $this->assertDatabaseHas('amenities', [
+            'name' => 'Conference Wi-Fi',
+            'icon' => 'wifi',
+            'category' => 'connectivity',
+            'is_active' => true,
+        ]);
+    }
+
+    public function test_property_manager_cannot_manage_amenity_master(): void
+    {
+        $manager = User::factory()->create([
+            'role' => User::ROLE_PROPERTY_MANAGER,
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($manager)
+            ->get(route('admin.amenities.index'))
+            ->assertForbidden();
     }
 
     public function test_admin_can_upload_property_image(): void
@@ -137,6 +244,29 @@ class AdminPropertyManagementTest extends TestCase
         $this->assertTrue($image->is_primary);
     }
 
+    public function test_admin_can_delete_property_image(): void
+    {
+        Storage::fake('public');
+
+        $admin = $this->adminUser();
+        $property = Property::query()->create($this->propertyPayload(['name' => 'Image Delete Guest House']));
+        Storage::disk('public')->put('properties/'.$property->id.'/front.jpg', 'image-data');
+
+        $image = $property->images()->create([
+            'path' => 'properties/'.$property->id.'/front.jpg',
+            'alt_text' => 'Front view',
+            'is_primary' => true,
+            'sort_order' => 0,
+        ]);
+
+        $this->actingAs($admin)
+            ->deleteJson(route('admin.properties.images.destroy', [$property, $image]))
+            ->assertNoContent();
+
+        Storage::disk('public')->assertMissing($image->path);
+        $this->assertDatabaseMissing('property_images', ['id' => $image->id]);
+    }
+
     private function adminUser(): User
     {
         return User::factory()->create([
@@ -159,6 +289,7 @@ class AdminPropertyManagementTest extends TestCase
             'state' => 'West Bengal',
             'country' => 'India',
             'postal_code' => '700001',
+            'location' => 'Golpark',
             'address' => '12 Guest Road',
             'phone' => '+91 90000 00000',
             'email' => 'property@example.com',
@@ -168,9 +299,8 @@ class AdminPropertyManagementTest extends TestCase
             'base_price' => '2500.00',
             'currency' => 'INR',
             'sort_order' => 0,
-            'short_description' => 'A clean and central guest house for business and family stays.',
             'description' => 'Designed for quick booking, reliable operations, and guest comfort.',
-            'amenities' => ['Wi-Fi', 'Parking'],
+            'amenities' => [],
         ], $overrides);
     }
 }

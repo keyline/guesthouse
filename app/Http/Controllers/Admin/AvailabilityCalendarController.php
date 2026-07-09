@@ -23,36 +23,37 @@ class AvailabilityCalendarController extends Controller
         $propertyId = $request->integer('property_id') ?: $scope->selectedPropertyId();
         $dates = collect(range(0, 13))->map(fn (int $offset) => $start->addDays($offset));
 
-        $roomTypes = $scope->apply(RoomType::query())
-            ->with('property')
-            ->withCount(['rooms' => fn ($query) => $query->where('status', 'available')])
-            ->when($propertyId, fn ($query, int $id) => $query->where('property_id', $id))
+        $roomTypes = RoomType::query()
+            ->withCount(['rooms' => fn ($query) => $query
+                ->where('status', 'available')
+                ->when($propertyId, fn ($roomQuery, int $id) => $roomQuery->where('property_id', $id))])
             ->where('status', RoomType::STATUS_ACTIVE)
-            ->orderBy('property_id')
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get();
 
-        $calendarRows = $roomTypes->map(function (RoomType $roomType) use ($dates, $availability): array {
-            return [
-                'roomType' => $roomType,
-                'days' => $dates->map(function (CarbonImmutable $date) use ($roomType, $availability): array {
-                    $booked = $availability->bookedRoomCount($roomType->id, $date);
-                    $available = max(0, $roomType->rooms_count - $booked);
+        $calendarRows = $roomTypes->filter(fn (RoomType $roomType): bool => $roomType->rooms_count > 0)
+            ->map(function (RoomType $roomType) use ($dates, $availability, $propertyId): array {
+                return [
+                    'roomType' => $roomType,
+                    'days' => $dates->map(function (CarbonImmutable $date) use ($roomType, $availability, $propertyId): array {
+                        $booked = $availability->bookedRoomCount($roomType->id, $date, $propertyId);
+                        $available = max(0, $roomType->rooms_count - $booked);
 
-                    return [
-                        'date' => $date,
-                        'booked' => $booked,
-                        'available' => $available,
-                    ];
-                }),
-            ];
-        });
+                        return [
+                            'date' => $date,
+                            'booked' => $booked,
+                            'available' => $available,
+                        ];
+                    }),
+                ];
+            });
 
         return view('admin.availability.index', [
             'calendarRows' => $calendarRows,
             'dates' => $dates,
             'properties' => $scope->properties()->pluck('name', 'id')->all(),
+            'selectedPropertyName' => $propertyId ? $scope->properties()->firstWhere('id', $propertyId)?->name : 'All properties',
             'start' => $start,
             'navItems' => AdminNavigation::make('bookings'),
         ]);

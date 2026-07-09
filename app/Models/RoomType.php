@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
@@ -18,15 +17,11 @@ class RoomType extends Model
      * @var list<string>
      */
     protected $fillable = [
-        'property_id',
         'name',
         'code',
         'status',
         'max_adults',
         'max_children',
-        'base_occupancy',
-        'base_price_minor',
-        'currency',
         'sort_order',
         'description',
     ];
@@ -34,8 +29,6 @@ class RoomType extends Model
     protected function casts(): array
     {
         return [
-            'base_price_minor' => 'integer',
-            'base_occupancy' => 'integer',
             'max_adults' => 'integer',
             'max_children' => 'integer',
             'sort_order' => 'integer',
@@ -49,11 +42,6 @@ class RoomType extends Model
                 $roomType->code = static::makeCode($roomType->name);
             }
         });
-    }
-
-    public function property(): BelongsTo
-    {
-        return $this->belongsTo(Property::class);
     }
 
     public function rooms(): HasMany
@@ -79,11 +67,6 @@ class RoomType extends Model
     public function primaryImage(): HasMany
     {
         return $this->images()->where('is_primary', true);
-    }
-
-    public function formattedBasePrice(): string
-    {
-        return $this->currency.' '.number_format($this->base_price_minor / 100, 2);
     }
 
     public static function makeCode(string $name): string

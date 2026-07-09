@@ -2,7 +2,7 @@
 
 @section('title', 'Dashboard')
 @section('eyebrow', now()->format('M j, Y'))
-@section('page-title', 'Hotel Operations Dashboard')
+@section('page-title', 'Property Operations Dashboard')
 
 @section('header-actions')
     <span class="inline-flex h-10 items-center rounded-lg border border-slate-200 bg-white px-3 text-sm font-black text-slate-700 shadow-sm">
@@ -62,7 +62,7 @@
         <section class="admin-card overflow-hidden">
             <div class="admin-card-header">
                 <div>
-                    <h3 class="text-sm font-black text-slate-950">Top Performing Hotels</h3>
+                    <h3 class="text-sm font-black text-slate-950">Top Performing Properties</h3>
                     <p class="mt-0.5 text-xs font-semibold text-slate-500">By bookings and revenue</p>
                 </div>
             </div>
@@ -70,7 +70,7 @@
                 <table class="admin-table">
                     <thead>
                         <tr>
-                            <th>Hotel</th>
+                            <th>Property</th>
                             <th>Bookings</th>
                             <th>Revenue</th>
                             <th>Occ.</th>
@@ -78,13 +78,13 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($topHotels as $hotel)
+                        @foreach ($topProperties as $property)
                             <tr>
-                                <td class="font-black text-slate-900">{{ $hotel['name'] }}</td>
-                                <td class="font-bold text-slate-700">{{ $hotel['bookings'] }}</td>
-                                <td class="font-bold text-slate-700">{{ $hotel['revenue'] }}</td>
-                                <td class="font-bold text-slate-700">{{ $hotel['occupancy'] }}</td>
-                                <td class="font-bold text-slate-700">{{ $hotel['adr'] }}</td>
+                                <td class="font-black text-slate-900">{{ $property['name'] }}</td>
+                                <td class="font-bold text-slate-700">{{ $property['bookings'] }}</td>
+                                <td class="font-bold text-slate-700">{{ $property['revenue'] }}</td>
+                                <td class="font-bold text-slate-700">{{ $property['occupancy'] }}</td>
+                                <td class="font-bold text-slate-700">{{ $property['adr'] }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -96,7 +96,7 @@
             <div class="admin-card-header">
                 <div>
                     <h3 class="text-sm font-black text-slate-950">Recent Bookings</h3>
-                    <p class="mt-0.5 text-xs font-semibold text-slate-500">Latest booking activity across hotels</p>
+                    <p class="mt-0.5 text-xs font-semibold text-slate-500">Latest booking activity across properties</p>
                 </div>
                 <a href="{{ route('admin.bookings.index') }}" class="text-xs font-black text-sky-700">View all</a>
             </div>
@@ -106,7 +106,7 @@
                         <tr>
                             <th>Booking ID</th>
                             <th>Guest Name</th>
-                            <th>Hotel</th>
+                            <th>Property</th>
                             <th>Check-in</th>
                             <th>Check-out</th>
                             <th>Amount</th>
@@ -118,7 +118,7 @@
                             <tr>
                                 <td class="font-black text-slate-950">{{ $booking['id'] }}</td>
                                 <td class="font-bold text-slate-800">{{ $booking['guest'] }}</td>
-                                <td class="text-slate-600">{{ $booking['hotel'] }}</td>
+                                <td class="text-slate-600">{{ $booking['property'] }}</td>
                                 <td class="font-semibold text-slate-600">{{ $booking['checkIn'] }}</td>
                                 <td class="font-semibold text-slate-600">{{ $booking['checkOut'] }}</td>
                                 <td class="font-black text-slate-900">{{ $booking['amount'] }}</td>

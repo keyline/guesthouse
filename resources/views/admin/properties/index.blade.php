@@ -5,9 +5,11 @@
 @section('page-title', 'Properties')
 
 @section('header-actions')
-    <a href="{{ route('admin.properties.create') }}" class="rounded-lg bg-sky-600 px-4 py-2 text-sm font-bold text-white hover:bg-sky-700 transition">
-        + Add Property
-    </a>
+    @if (auth()->user()?->hasRole(\App\Models\User::ROLE_SUPER_ADMIN))
+        <a href="{{ route('admin.properties.create') }}" class="rounded-lg bg-sky-600 px-4 py-2 text-sm font-bold text-white hover:bg-sky-700 transition">
+            + Add Property
+        </a>
+    @endif
 @endsection
 
 @section('content')
@@ -48,6 +50,7 @@
                     <th class="px-4 py-2">Property Name</th>
                     <th class="px-4 py-2">Location</th>
                     <th class="px-4 py-2">Type</th>
+                    <th class="px-4 py-2 text-center">Home</th>
                     <th class="px-4 py-2 text-center">Status</th>
                     <th class="px-4 py-2 text-right">Actions</th>
                 </tr>
@@ -57,10 +60,19 @@
                     <tr class="hover:bg-slate-50">
                         <td class="px-4 py-3">
                             <p class="font-bold text-slate-900">{{ $property->name }}</p>
-                            <p class="text-xs text-slate-500">{{ $property->short_description ? substr($property->short_description, 0, 50) : 'No description' }}</p>
+                            <p class="text-xs text-slate-500">{{ $property->description ? substr($property->description, 0, 50) : 'No description' }}</p>
                         </td>
                         <td class="px-4 py-3 text-sm">{{ $property->city }}, {{ $property->state ?? '' }} {{ $property->country }}</td>
                         <td class="px-4 py-3 text-sm font-semibold text-slate-600">{{ str_replace('_', ' ', $property->property_type) }}</td>
+                        <td class="px-4 py-3 text-center">
+                            <form method="POST" action="{{ route('admin.properties.toggle-home', $property) }}" class="inline-flex items-center justify-center">
+                                @csrf
+                                <label class="inline-flex cursor-pointer items-center gap-2 rounded border border-slate-200 px-2 py-1 text-xs font-bold text-slate-600 hover:border-sky-300 hover:bg-sky-50">
+                                    <input type="checkbox" onchange="this.form.submit()" @checked($property->show_on_home) class="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-600">
+                                    <span>{{ $property->show_on_home ? 'Shown' : 'Hidden' }}</span>
+                                </label>
+                            </form>
+                        </td>
                         <td class="px-4 py-3 text-center">
                             @php
                                 $statusClass = [
@@ -69,7 +81,16 @@
                                     'inactive' => 'bg-slate-100 text-slate-600',
                                 ][$property->status] ?? 'bg-slate-100 text-slate-600';
                             @endphp
-                            <span class="inline-block rounded px-2 py-1 text-xs font-bold {{ $statusClass }}">{{ ucfirst($property->status) }}</span>
+                            <form method="POST" action="{{ route('admin.properties.toggle-status', $property) }}" class="inline-block">
+                                @csrf
+                                <button
+                                    type="submit"
+                                    class="inline-flex rounded px-2 py-1 text-xs font-bold transition hover:-translate-y-0.5 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-300 {{ $statusClass }}"
+                                    title="Click to change status to {{ $property->status === \App\Models\Property::STATUS_ACTIVE ? 'Draft' : 'Active' }}"
+                                >
+                                    {{ ucfirst($property->status) }}
+                                </button>
+                            </form>
                         </td>
                         <td class="px-4 py-3 text-right">
                             <div class="flex justify-end gap-2">
@@ -80,7 +101,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="px-4 py-8 text-center">
+                        <td colspan="6" class="px-4 py-8 text-center">
                             <p class="text-sm font-semibold text-slate-600">No properties found</p>
                             <a href="{{ route('admin.properties.create') }}" class="mt-3 inline-block rounded bg-slate-900 px-3 py-2 text-sm font-bold text-white hover:bg-slate-800">Create First Property</a>
                         </td>

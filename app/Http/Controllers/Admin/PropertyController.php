@@ -8,6 +8,7 @@ use App\Models\Amenity;
 use App\Models\Property;
 use App\Support\AdminNavigation;
 use App\Support\AdminPropertyScope;
+use App\Support\AmenityIconLibrary;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,7 +18,7 @@ class PropertyController extends Controller
 {
     public function index(Request $request, AdminPropertyScope $scope): View
     {
-        $properties = $scope->apply(Property::query(), 'id')
+        $properties = $scope->applyAccessible(Property::query(), 'id')
             ->with(['amenities', 'images'])
             ->when($request->string('status')->toString(), fn ($query, string $status) => $query->where('status', $status))
             ->when($request->string('city')->toString(), fn ($query, string $city) => $query->where('city', 'like', '%'.$city.'%'))
@@ -46,7 +47,9 @@ class PropertyController extends Controller
                 'check_in_time_minutes' => 720,
                 'check_out_time_minutes' => 660,
             ]),
-            'amenityNames' => [],
+            'amenities' => $this->amenities(),
+            'amenityIconLibrary' => AmenityIconLibrary::all(),
+            'selectedAmenityIds' => [],
             'navItems' => AdminNavigation::make('properties'),
             'statuses' => $this->statuses(),
             'types' => $this->types(),
@@ -60,7 +63,7 @@ class PropertyController extends Controller
         $property = DB::transaction(function () use ($request): Property {
             $property = Property::query()->create($request->propertyAttributes());
 
-            $this->syncAmenities($property, $request->amenityNames());
+            $this->syncAmenities($property, $request->amenityIds());
             $this->storeImages($property, $request);
 
             return $property;
@@ -85,11 +88,13 @@ class PropertyController extends Controller
     public function edit(Property $property, AdminPropertyScope $scope): View
     {
         abort_unless($scope->canAccessProperty($property->id), 404);
-        $property->load('amenities');
+        $property->load(['amenities', 'images']);
 
         return view('admin.properties.edit', [
             'property' => $property,
-            'amenityNames' => $property->amenities->pluck('name')->all(),
+            'amenities' => $this->amenities(),
+            'amenityIconLibrary' => AmenityIconLibrary::all(),
+            'selectedAmenityIds' => $property->amenities->pluck('id')->all(),
             'navItems' => AdminNavigation::make('properties'),
             'statuses' => $this->statuses(),
             'types' => $this->types(),
@@ -108,13 +113,38 @@ class PropertyController extends Controller
             }
 
             $property->update($attributes);
-            $this->syncAmenities($property, $request->amenityNames());
+            $this->syncAmenities($property, $request->amenityIds());
             $this->storeImages($property, $request);
         });
 
         return redirect()
-            ->route('admin.properties.show', $property)
+            ->route('admin.properties.edit', $property)
             ->with('status', 'Property updated successfully.');
+    }
+
+    public function toggleStatus(Property $property, AdminPropertyScope $scope): RedirectResponse
+    {
+        abort_unless($scope->canAccessProperty($property->id), 404);
+
+        $property->update([
+            'status' => $property->status === Property::STATUS_ACTIVE
+                ? Property::STATUS_DRAFT
+                : Property::STATUS_ACTIVE,
+            'published_at' => $property->status === Property::STATUS_ACTIVE ? null : now(),
+        ]);
+
+        return back()->with('status', 'Property status updated successfully.');
+    }
+
+    public function toggleHome(Property $property, AdminPropertyScope $scope): RedirectResponse
+    {
+        abort_unless($scope->canAccessProperty($property->id), 404);
+
+        $property->update([
+            'show_on_home' => ! $property->show_on_home,
+        ]);
+
+        return back()->with('status', 'Home page visibility updated successfully.');
     }
 
     public function destroy(Property $property, AdminPropertyScope $scope): RedirectResponse
@@ -130,15 +160,20 @@ class PropertyController extends Controller
     }
 
     /**
-     * @param  list<string>  $amenityNames
+     * @param  list<int>  $amenityIds
      */
-    private function syncAmenities(Property $property, array $amenityNames): void
+    private function syncAmenities(Property $property, array $amenityIds): void
     {
-        $amenityIds = collect($amenityNames)
-            ->map(fn (string $name) => Amenity::query()->firstOrCreate(['name' => $name])->id)
-            ->all();
-
         $property->amenities()->sync($amenityIds);
+    }
+
+    private function amenities()
+    {
+        return Amenity::query()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
     }
 
     private function storeImages(Property $property, PropertyRequest $request): void

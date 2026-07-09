@@ -15,16 +15,7 @@
     @endif
 
     <section class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-        <form method="GET" action="{{ route('admin.room-types.index') }}" class="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
-            <div>
-                <label for="property_id" class="text-sm font-bold text-slate-700">Property</label>
-                <select id="property_id" name="property_id" class="mt-2 h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm">
-                    <option value="">All properties</option>
-                    @foreach ($properties as $id => $name)
-                        <option value="{{ $id }}" @selected((int) request('property_id') === $id)>{{ $name }}</option>
-                    @endforeach
-                </select>
-            </div>
+        <form method="GET" action="{{ route('admin.room-types.index') }}" class="grid gap-3 md:grid-cols-[1fr_auto]">
             <div>
                 <label for="status" class="text-sm font-bold text-slate-700">Status</label>
                 <select id="status" name="status" class="mt-2 h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm">
@@ -48,22 +39,22 @@
                     <div>
                         <p class="text-xs font-black uppercase tracking-wide text-slate-500">{{ $roomType->code }}</p>
                         <h2 class="mt-1 text-xl font-black">{{ $roomType->name }}</h2>
-                        <p class="mt-1 text-sm font-semibold text-slate-500">{{ $roomType->property->name }}</p>
+                        <p class="mt-1 text-sm font-semibold text-slate-500">Global room type master</p>
                     </div>
                     <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-black text-slate-700">{{ ucfirst($roomType->status) }}</span>
                 </div>
                 <div class="mt-5 grid grid-cols-3 gap-2 text-center text-sm">
                     <div class="rounded-lg bg-slate-50 p-3">
-                        <span class="block font-black">{{ $roomType->formattedBasePrice() }}</span>
-                        <span class="text-xs font-semibold text-slate-500">Price</span>
+                        <span class="block font-black">{{ $roomType->max_adults }}</span>
+                        <span class="text-xs font-semibold text-slate-500">Adults</span>
                     </div>
                     <div class="rounded-lg bg-slate-50 p-3">
-                        <span class="block font-black">{{ $roomType->max_adults + $roomType->max_children }}</span>
-                        <span class="text-xs font-semibold text-slate-500">Guests</span>
+                        <span class="block font-black">{{ $roomType->max_children }}</span>
+                        <span class="text-xs font-semibold text-slate-500">Children</span>
                     </div>
                     <div class="rounded-lg bg-slate-50 p-3">
                         <span class="block font-black">{{ $roomType->rooms_count }}</span>
-                        <span class="text-xs font-semibold text-slate-500">Rooms</span>
+                        <span class="text-xs font-semibold text-slate-500">Assigned rooms</span>
                     </div>
                 </div>
                 <div class="mt-5 flex flex-wrap gap-2">

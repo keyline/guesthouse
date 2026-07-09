@@ -213,35 +213,42 @@
 
                                         <div class="hotel-preview owl-carousel" id="hotelPreviewSliderGuestHouse">
 
-                                            <div class="hotel-preview__item">
-                                                <div class="hotel-preview__info">
-                                                    <div class="hotel-preview__badge">
-                                                        <i class="fa-solid fa-circle-check"></i>
+                                            @forelse ($guestHouseFeaturedProperties as $property)
+                                                @php
+                                                    $previewImage = $property->images->first();
+                                                    $previewImageUrl = $previewImage ? asset('storage/'.$previewImage->path) : asset('landing/images/formslider1.jpg');
+                                                    $previewLocation = collect([$property->location, $property->city])->filter()->unique()->join(', ');
+                                                @endphp
+                                                <div class="hotel-preview__item">
+                                                    <div class="hotel-preview__info">
+                                                        <div class="hotel-preview__badge">
+                                                            <i class="fa-solid fa-circle-check"></i>
+                                                        </div>
+                                                        <h4>{{ $property->name }}</h4>
+                                                        <p class="hotel-preview__location">{{ $previewLocation ?: $property->city }}</p>
+                                                        <p class="hotel-preview__address">
+                                                            <i class="fa-solid fa-location-dot"></i>
+                                                            <span>{{ $property->address }}</span>
+                                                        </p>
                                                     </div>
-                                                    <h4>Innra Hotel &amp; Banquet</h4>
-                                                    <p class="hotel-preview__location">Golpark, Kolkata</p>
-                                                    <p class="hotel-preview__address">
-                                                        <i class="fa-solid fa-location-dot"></i>
-                                                        <span>82C, Meghnad Saha Sarani, Southern Avenue, Golpark, near HDFC Bank, Opposite Ramkrishna Mission, Kolkata &ndash; 700029</span>
-                                                    </p>
+                                                    <div class="hotel-preview__thumb" style="background-image: url({{ $previewImageUrl }});"></div>
                                                 </div>
-                                                <div class="hotel-preview__thumb" style="background-image: url({{ asset('landing/images/formslider1.jpg') }});"></div>
-                                            </div>
-
-                                            <div class="hotel-preview__item">
-                                                <div class="hotel-preview__info">
-                                                    <div class="hotel-preview__badge">
-                                                        <i class="fa-solid fa-circle-check"></i>
+                                            @empty
+                                                <div class="hotel-preview__item">
+                                                    <div class="hotel-preview__info">
+                                                        <div class="hotel-preview__badge">
+                                                            <i class="fa-solid fa-circle-check"></i>
+                                                        </div>
+                                                        <h4>Innra Hotel &amp; Banquet</h4>
+                                                        <p class="hotel-preview__location">Golpark, Kolkata</p>
+                                                        <p class="hotel-preview__address">
+                                                            <i class="fa-solid fa-location-dot"></i>
+                                                            <span>82C, Meghnad Saha Sarani, Southern Avenue, Golpark, near HDFC Bank, Opposite Ramkrishna Mission, Kolkata &ndash; 700029</span>
+                                                        </p>
                                                     </div>
-                                                    <h4>Eennra Grand Residency</h4>
-                                                    <p class="hotel-preview__location">Salt Lake, Kolkata</p>
-                                                    <p class="hotel-preview__address">
-                                                        <i class="fa-solid fa-location-dot"></i>
-                                                        <span>DA - 12, Sector V, Salt Lake, Kolkata &ndash; 700091</span>
-                                                    </p>
+                                                    <div class="hotel-preview__thumb" style="background-image: url({{ asset('landing/images/formslider1.jpg') }});"></div>
                                                 </div>
-                                                <div class="hotel-preview__thumb" style="background-image: url({{ asset('landing/images/formslider2.jpg') }});"></div>
-                                            </div>
+                                            @endforelse
 
                                         </div>
 
@@ -250,10 +257,15 @@
                                             <div class="form-group form-group--full">
                                                 <label>Location</label>
                                                 <div class="form-control-wrap">
-                                                    <select>
+                                                    <select name="property">
                                                         <option>Select Guest House</option>
-                                                        <option>Golpark, Kolkata</option>
-                                                        <option>Salt Lake, Kolkata</option>
+                                                        @forelse ($guestHouseProperties as $property)
+                                                            <option value="{{ $property->getRouteKey() }}">
+                                                                {{ $property->locationDropdownLabel() }}
+                                                            </option>
+                                                        @empty
+                                                            <option disabled>No guest houses available</option>
+                                                        @endforelse
                                                     </select>
                                                     <i class="fa-solid fa-chevron-down"></i>
                                                 </div>
@@ -309,35 +321,42 @@
 
                                         <div class="hotel-preview owl-carousel" id="hotelPreviewSliderBanquets">
 
-                                            <div class="hotel-preview__item">
-                                                <div class="hotel-preview__info">
-                                                    <div class="hotel-preview__badge">
-                                                        <i class="fa-solid fa-circle-check"></i>
+                                            @forelse ($banquetFeaturedProperties as $property)
+                                                @php
+                                                    $previewImage = $property->images->first();
+                                                    $previewImageUrl = $previewImage ? asset('storage/'.$previewImage->path) : asset('landing/images/formslider3.jpg');
+                                                    $previewLocation = collect([$property->location, $property->city])->filter()->unique()->join(', ');
+                                                @endphp
+                                                <div class="hotel-preview__item">
+                                                    <div class="hotel-preview__info">
+                                                        <div class="hotel-preview__badge">
+                                                            <i class="fa-solid fa-circle-check"></i>
+                                                        </div>
+                                                        <h4>{{ $property->name }}</h4>
+                                                        <p class="hotel-preview__location">{{ $previewLocation ?: $property->city }}</p>
+                                                        <p class="hotel-preview__address">
+                                                            <i class="fa-solid fa-location-dot"></i>
+                                                            <span>{{ $property->address }}</span>
+                                                        </p>
                                                     </div>
-                                                    <h4>Eennra Grand Banquet Hall</h4>
-                                                    <p class="hotel-preview__location">Golpark, Kolkata</p>
-                                                    <p class="hotel-preview__address">
-                                                        <i class="fa-solid fa-location-dot"></i>
-                                                        <span>82C, Meghnad Saha Sarani, Southern Avenue, Golpark, near HDFC Bank, Opposite Ramkrishna Mission, Kolkata &ndash; 700029</span>
-                                                    </p>
+                                                    <div class="hotel-preview__thumb" style="background-image: url({{ $previewImageUrl }});"></div>
                                                 </div>
-                                                <div class="hotel-preview__thumb" style="background-image: url({{ asset('landing/images/formslider3.jpg') }});"></div>
-                                            </div>
-
-                                            <div class="hotel-preview__item">
-                                                <div class="hotel-preview__info">
-                                                    <div class="hotel-preview__badge">
-                                                        <i class="fa-solid fa-circle-check"></i>
+                                            @empty
+                                                <div class="hotel-preview__item">
+                                                    <div class="hotel-preview__info">
+                                                        <div class="hotel-preview__badge">
+                                                            <i class="fa-solid fa-circle-check"></i>
+                                                        </div>
+                                                        <h4>Eennra Grand Banquet Hall</h4>
+                                                        <p class="hotel-preview__location">Golpark, Kolkata</p>
+                                                        <p class="hotel-preview__address">
+                                                            <i class="fa-solid fa-location-dot"></i>
+                                                            <span>82C, Meghnad Saha Sarani, Southern Avenue, Golpark, near HDFC Bank, Opposite Ramkrishna Mission, Kolkata &ndash; 700029</span>
+                                                        </p>
                                                     </div>
-                                                    <h4>Eennra Celebration Hall</h4>
-                                                    <p class="hotel-preview__location">Salt Lake, Kolkata</p>
-                                                    <p class="hotel-preview__address">
-                                                        <i class="fa-solid fa-location-dot"></i>
-                                                        <span>DA - 12, Sector V, Salt Lake, Kolkata &ndash; 700091</span>
-                                                    </p>
+                                                    <div class="hotel-preview__thumb" style="background-image: url({{ asset('landing/images/formslider3.jpg') }});"></div>
                                                 </div>
-                                                <div class="hotel-preview__thumb" style="background-image: url({{ asset('landing/images/formslider1.jpg') }});"></div>
-                                            </div>
+                                            @endforelse
 
                                         </div>
 
@@ -346,10 +365,15 @@
                                             <div class="form-group form-group--full">
                                                 <label>Location</label>
                                                 <div class="form-control-wrap">
-                                                    <select>
+                                                    <select name="property">
                                                         <option>Select Banquet Hall</option>
-                                                        <option>Golpark, Kolkata</option>
-                                                        <option>Salt Lake, Kolkata</option>
+                                                        @forelse ($banquetProperties as $property)
+                                                            <option value="{{ $property->getRouteKey() }}">
+                                                                {{ $property->locationDropdownLabel() }}
+                                                            </option>
+                                                        @empty
+                                                            <option disabled>No banquet halls available</option>
+                                                        @endforelse
                                                     </select>
                                                     <i class="fa-solid fa-chevron-down"></i>
                                                 </div>

@@ -97,4 +97,23 @@ class AdminPropertyScope
 
         return $selected ? $query->where($column, $selected) : $query->whereRaw('1 = 0');
     }
+
+    public function applyAccessible(Builder $query, string $column = 'property_id', ?User $user = null): Builder
+    {
+        $user ??= $this->request->user();
+
+        if (! $user) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        if ($user->hasRole(User::ROLE_SUPER_ADMIN)) {
+            return $query;
+        }
+
+        $propertyIds = $this->properties($user)->pluck('id');
+
+        return $propertyIds->isNotEmpty()
+            ? $query->whereIn($column, $propertyIds)
+            : $query->whereRaw('1 = 0');
+    }
 }

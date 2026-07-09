@@ -31,21 +31,17 @@ class AdminRoomInventoryTest extends TestCase
     public function test_admin_can_create_room_type(): void
     {
         $admin = $this->adminUser();
-        $property = $this->property();
 
         $this->actingAs($admin)
-            ->post(route('admin.room-types.store'), $this->roomTypePayload($property, [
+            ->post(route('admin.room-types.store'), $this->roomTypePayload([
                 'name' => 'Deluxe Double',
                 'code' => 'DLX',
-                'base_price' => '3500.00',
             ]))
             ->assertRedirect();
 
         $this->assertDatabaseHas('room_types', [
-            'property_id' => $property->id,
             'name' => 'Deluxe Double',
             'code' => 'DLX',
-            'base_price_minor' => 350000,
         ]);
     }
 
@@ -53,7 +49,7 @@ class AdminRoomInventoryTest extends TestCase
     {
         $admin = $this->adminUser();
         $property = $this->property();
-        $roomType = $this->roomType($property);
+        $roomType = $this->roomType();
 
         $this->actingAs($admin)
             ->post(route('admin.rooms.store'), $this->roomPayload($property, $roomType, [
@@ -77,7 +73,7 @@ class AdminRoomInventoryTest extends TestCase
     {
         $admin = $this->adminUser();
         $property = $this->property();
-        $roomType = $this->roomType($property);
+        $roomType = $this->roomType();
         $room = Room::query()->create($this->roomPayload($property, $roomType, ['room_number' => '201']));
 
         $this->actingAs($admin)
@@ -86,7 +82,7 @@ class AdminRoomInventoryTest extends TestCase
                 'status' => Room::STATUS_MAINTENANCE,
                 'notes' => 'Deep cleaning scheduled.',
             ]))
-            ->assertRedirect(route('admin.rooms.show', $room));
+            ->assertRedirect(route('admin.rooms.edit', $room));
 
         $this->assertDatabaseHas('rooms', [
             'id' => $room->id,
@@ -95,11 +91,25 @@ class AdminRoomInventoryTest extends TestCase
         ]);
     }
 
+    public function test_room_profile_page_redirects_to_edit(): void
+    {
+        $admin = $this->adminUser();
+        $property = $this->property();
+        $roomType = $this->roomType();
+        $room = Room::query()->create($this->roomPayload($property, $roomType, [
+            'room_number' => '303',
+        ]));
+
+        $this->actingAs($admin)
+            ->get(route('admin.rooms.show', $room))
+            ->assertRedirect(route('admin.rooms.edit', $room));
+    }
+
     public function test_room_type_with_rooms_cannot_be_deleted(): void
     {
         $admin = $this->adminUser();
         $property = $this->property();
-        $roomType = $this->roomType($property);
+        $roomType = $this->roomType();
 
         Room::query()->create($this->roomPayload($property, $roomType));
 
@@ -142,18 +152,14 @@ class AdminRoomInventoryTest extends TestCase
         ]);
     }
 
-    private function roomType(Property $property): RoomType
+    private function roomType(): RoomType
     {
         return RoomType::query()->create([
-            'property_id' => $property->id,
             'name' => 'Standard Double',
             'code' => 'STD',
             'status' => RoomType::STATUS_ACTIVE,
             'max_adults' => 2,
             'max_children' => 1,
-            'base_occupancy' => 2,
-            'base_price_minor' => 280000,
-            'currency' => 'INR',
             'sort_order' => 0,
         ]);
     }
@@ -162,18 +168,14 @@ class AdminRoomInventoryTest extends TestCase
      * @param  array<string, mixed>  $overrides
      * @return array<string, mixed>
      */
-    private function roomTypePayload(Property $property, array $overrides = []): array
+    private function roomTypePayload(array $overrides = []): array
     {
         return array_merge([
-            'property_id' => $property->id,
             'name' => 'Standard Double',
             'code' => 'STD',
             'status' => RoomType::STATUS_ACTIVE,
             'max_adults' => 2,
             'max_children' => 1,
-            'base_occupancy' => 2,
-            'base_price' => '2800.00',
-            'currency' => 'INR',
             'sort_order' => 0,
             'description' => 'Standard room for two guests.',
         ], $overrides);

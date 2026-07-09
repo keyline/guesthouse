@@ -165,7 +165,6 @@ class AdminBookingManagementTest extends TestCase
             'status' => RoomType::STATUS_ACTIVE,
             'max_adults' => 2,
             'max_children' => 1,
-            'base_occupancy' => 2,
             'base_price_minor' => 280000,
             'currency' => 'INR',
         ]);

@@ -33,6 +33,7 @@ class Property extends Model
         'property_type',
         'status',
         'city',
+        'location',
         'state',
         'country',
         'postal_code',
@@ -45,7 +46,7 @@ class Property extends Model
         'base_price_minor',
         'currency',
         'sort_order',
-        'short_description',
+        'show_on_home',
         'description',
         'policies',
         'published_at',
@@ -60,6 +61,7 @@ class Property extends Model
             'policies' => 'array',
             'published_at' => 'datetime',
             'sort_order' => 'integer',
+            'show_on_home' => 'boolean',
         ];
     }
 
@@ -87,11 +89,6 @@ class Property extends Model
         return $this->hasMany(PropertyImage::class)->orderBy('sort_order')->orderBy('id');
     }
 
-    public function roomTypes(): HasMany
-    {
-        return $this->hasMany(RoomType::class)->orderBy('sort_order')->orderBy('name');
-    }
-
     public function rooms(): HasMany
     {
         return $this->hasMany(Room::class)->orderBy('room_number');
@@ -102,6 +99,11 @@ class Property extends Model
         return $this->hasMany(Booking::class)->latest('check_in_date');
     }
 
+    public function banquets(): HasMany
+    {
+        return $this->hasMany(Banquet::class)->orderBy('sort_order')->orderBy('name');
+    }
+
     public function primaryImage(): HasMany
     {
         return $this->images()->where('is_primary', true);
@@ -110,6 +112,70 @@ class Property extends Model
     public function formattedBasePrice(): string
     {
         return $this->currency.' '.number_format($this->base_price_minor / 100, 2);
+    }
+
+    public function locationDropdownLabel(): string
+    {
+        return collect([$this->name, $this->location, $this->city])
+            ->filter(fn (?string $part) => filled($part))
+            ->unique()
+            ->join(' - ');
+    }
+
+    public function getRouteKey(): string
+    {
+        $encrypted = openssl_encrypt(
+            (string) $this->getKey(),
+            'AES-256-CBC',
+            $this->routeKeySecret(),
+            OPENSSL_RAW_DATA,
+            $this->routeKeyIv(),
+        );
+
+        return rtrim(strtr(base64_encode($encrypted ?: ''), '+/', '-_'), '=');
+    }
+
+    public function resolveRouteBinding($value, $field = null): ?self
+    {
+        $encrypted = base64_decode(strtr((string) $value, '-_', '+/'), true);
+
+        if ($encrypted === false) {
+            return null;
+        }
+
+        $id = openssl_decrypt(
+            $encrypted,
+            'AES-256-CBC',
+            $this->routeKeySecret(),
+            OPENSSL_RAW_DATA,
+            $this->routeKeyIv(),
+        );
+
+        if (! is_string($id) || ! ctype_digit($id)) {
+            return null;
+        }
+
+        return $this->whereKey($id)->first();
+    }
+
+    private function routeKeySecret(): string
+    {
+        $key = (string) config('app.key');
+
+        if (str_starts_with($key, 'base64:')) {
+            $decoded = base64_decode(substr($key, 7), true);
+
+            if ($decoded !== false) {
+                return hash('sha256', $decoded, true);
+            }
+        }
+
+        return hash('sha256', $key, true);
+    }
+
+    private function routeKeyIv(): string
+    {
+        return substr(hash_hmac('sha256', 'property-route-key', $this->routeKeySecret(), true), 0, 16);
     }
 
     public static function uniqueSlug(string $name, ?int $ignoreId = null): string

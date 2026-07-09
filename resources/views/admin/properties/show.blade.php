@@ -28,10 +28,6 @@
                     <span class="w-fit rounded-full bg-slate-950 px-3 py-1 text-xs font-black uppercase tracking-wide text-white">{{ $property->status }}</span>
                 </div>
 
-                @if ($property->short_description)
-                    <p class="mt-5 text-base font-semibold text-slate-700">{{ $property->short_description }}</p>
-                @endif
-
                 @if ($property->description)
                     <p class="mt-3 whitespace-pre-line text-sm leading-6 text-slate-600">{{ $property->description }}</p>
                 @endif

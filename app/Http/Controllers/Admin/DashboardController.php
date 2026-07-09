@@ -14,7 +14,7 @@ class DashboardController extends Controller
         $selectedProperty = $scope->selectedPropertyId()
             ? $scope->properties()->firstWhere('id', $scope->selectedPropertyId())
             : null;
-        $selectedPropertyName = $selectedProperty?->name ?? 'All Hotels';
+        $selectedPropertyName = $selectedProperty?->name ?? 'All Properties';
 
         return view('admin.dashboard.index', [
             'selectedPropertyName' => $selectedPropertyName,
@@ -61,18 +61,18 @@ class DashboardController extends Controller
                 ],
             ],
             'bookingTrend' => [42, 58, 51, 72, 64, 86, 79, 94, 88, 104, 112, 128],
-            'topHotels' => [
+            'topProperties' => [
                 ['name' => 'EENNRA Salt Lake', 'bookings' => 326, 'revenue' => '₹12.4L', 'occupancy' => '86%', 'adr' => '₹5,100'],
                 ['name' => 'Airport Guest Suites', 'bookings' => 288, 'revenue' => '₹9.8L', 'occupancy' => '82%', 'adr' => '₹4,720'],
                 ['name' => 'EENNRA Ballygunge', 'bookings' => 241, 'revenue' => '₹8.6L', 'occupancy' => '77%', 'adr' => '₹4,280'],
                 ['name' => 'EENNRA Banquet House', 'bookings' => 174, 'revenue' => '₹7.2L', 'occupancy' => '69%', 'adr' => '₹6,400'],
             ],
             'recentBookings' => [
-                ['id' => 'BK-10294', 'guest' => 'Anika Roy', 'hotel' => 'EENNRA Salt Lake', 'checkIn' => '08 Jul', 'checkOut' => '10 Jul', 'amount' => '₹12,800', 'status' => 'Confirmed'],
-                ['id' => 'BK-10293', 'guest' => 'Rohan Mehta', 'hotel' => 'Airport Guest Suites', 'checkIn' => '08 Jul', 'checkOut' => '09 Jul', 'amount' => '₹6,400', 'status' => 'Pending'],
-                ['id' => 'BK-10292', 'guest' => 'Maya Sen', 'hotel' => 'EENNRA Banquet House', 'checkIn' => '09 Jul', 'checkOut' => '09 Jul', 'amount' => '₹58,000', 'status' => 'Confirmed'],
-                ['id' => 'BK-10291', 'guest' => 'Aritra Das', 'hotel' => 'EENNRA Ballygunge', 'checkIn' => '10 Jul', 'checkOut' => '12 Jul', 'amount' => '₹9,200', 'status' => 'Cancelled'],
-                ['id' => 'BK-10290', 'guest' => 'Nisha Kapoor', 'hotel' => 'Airport Guest Suites', 'checkIn' => '07 Jul', 'checkOut' => '08 Jul', 'amount' => '₹5,900', 'status' => 'No Show'],
+                ['id' => 'BK-10294', 'guest' => 'Anika Roy', 'property' => 'EENNRA Salt Lake', 'checkIn' => '08 Jul', 'checkOut' => '10 Jul', 'amount' => '₹12,800', 'status' => 'Confirmed'],
+                ['id' => 'BK-10293', 'guest' => 'Rohan Mehta', 'property' => 'Airport Guest Suites', 'checkIn' => '08 Jul', 'checkOut' => '09 Jul', 'amount' => '₹6,400', 'status' => 'Pending'],
+                ['id' => 'BK-10292', 'guest' => 'Maya Sen', 'property' => 'EENNRA Banquet House', 'checkIn' => '09 Jul', 'checkOut' => '09 Jul', 'amount' => '₹58,000', 'status' => 'Confirmed'],
+                ['id' => 'BK-10291', 'guest' => 'Aritra Das', 'property' => 'EENNRA Ballygunge', 'checkIn' => '10 Jul', 'checkOut' => '12 Jul', 'amount' => '₹9,200', 'status' => 'Cancelled'],
+                ['id' => 'BK-10290', 'guest' => 'Nisha Kapoor', 'property' => 'Airport Guest Suites', 'checkIn' => '07 Jul', 'checkOut' => '08 Jul', 'amount' => '₹5,900', 'status' => 'No Show'],
             ],
             'statusBreakdown' => [
                 ['label' => 'Confirmed', 'value' => 64, 'class' => 'bg-emerald-500'],

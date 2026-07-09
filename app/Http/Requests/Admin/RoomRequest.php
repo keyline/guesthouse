@@ -29,7 +29,7 @@ class RoomRequest extends FormRequest
             'room_type_id' => [
                 'required',
                 'integer',
-                Rule::exists(RoomType::class, 'id')->where('property_id', $this->integer('property_id')),
+                Rule::exists(RoomType::class, 'id'),
             ],
             'room_number' => [
                 'required',

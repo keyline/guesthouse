@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\RoomRequest;
 use App\Models\Property;
 use App\Models\Room;
+use App\Models\RoomImage;
 use App\Models\RoomType;
 use App\Support\AdminNavigation;
 use App\Support\AdminPropertyScope;
@@ -53,21 +54,18 @@ class RoomController extends Controller
     public function store(RoomRequest $request): RedirectResponse
     {
         $room = Room::query()->create($request->attributesForModel());
+        $this->handleImageUpload($request, $room);
 
         return redirect()
-            ->route('admin.rooms.show', $room)
+            ->route('admin.rooms.edit', $room)
             ->with('status', 'Room created successfully.');
     }
 
-    public function show(Room $room, AdminPropertyScope $scope): View
+    public function show(Room $room, AdminPropertyScope $scope): RedirectResponse
     {
         abort_unless($scope->canAccessProperty($room->property_id), 404);
-        $room->load(['property', 'roomType']);
 
-        return view('admin.rooms.show', [
-            'room' => $room,
-            'navItems' => AdminNavigation::make('rooms'),
-        ]);
+        return redirect()->route('admin.rooms.edit', $room);
     }
 
     public function edit(Room $room, AdminPropertyScope $scope): View
@@ -87,9 +85,10 @@ class RoomController extends Controller
     {
         abort_unless($scope->canAccessProperty($room->property_id), 404);
         $room->update($request->attributesForModel());
+        $this->handleImageUpload($request, $room);
 
         return redirect()
-            ->route('admin.rooms.show', $room)
+            ->route('admin.rooms.edit', $room)
             ->with('status', 'Room updated successfully.');
     }
 
@@ -104,11 +103,11 @@ class RoomController extends Controller
     }
 
     /**
-     * @return array<int, string>
+     * @return array<int, Property>
      */
     private function properties(AdminPropertyScope $scope): array
     {
-        return $scope->properties()->pluck('name', 'id')->all();
+        return $scope->properties()->keyBy('id')->all();
     }
 
     /**
@@ -116,12 +115,13 @@ class RoomController extends Controller
      */
     private function roomTypes(AdminPropertyScope $scope): array
     {
-        return $scope->apply(RoomType::query())
-            ->with('property')
+        return RoomType::query()
+            ->where('status', RoomType::STATUS_ACTIVE)
+            ->orderBy('sort_order')
             ->orderBy('name')
             ->get()
             ->mapWithKeys(fn (RoomType $roomType) => [
-                $roomType->id => $roomType->name.' - '.$roomType->property->name,
+                $roomType->id => $roomType->name,
             ])
             ->all();
     }
@@ -136,5 +136,29 @@ class RoomController extends Controller
             Room::STATUS_MAINTENANCE => 'Maintenance',
             Room::STATUS_BLOCKED => 'Blocked',
         ];
+    }
+
+    private function handleImageUpload(Request $request, Room $room): void
+    {
+        if (!$request->hasFile('room_images')) {
+            return;
+        }
+
+        $files = $request->file('room_images');
+        if (!is_array($files)) {
+            $files = [$files];
+        }
+
+        foreach ($files as $file) {
+            if ($file && $file->isValid()) {
+                $path = $file->store("rooms/{$room->id}", 'public');
+                RoomImage::create([
+                    'room_id' => $room->id,
+                    'path' => $path,
+                    'alt_text' => $room->room_number,
+                    'sort_order' => $room->images()->max('sort_order') + 1 ?? 1,
+                ]);
+            }
+        }
     }
 }

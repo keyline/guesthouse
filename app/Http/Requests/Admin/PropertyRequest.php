@@ -23,6 +23,7 @@ class PropertyRequest extends FormRequest
             'property_type' => ['nullable', Rule::in([Property::TYPE_GUEST_HOUSE, Property::TYPE_BANQUET, Property::TYPE_MIXED])],
             'status' => ['nullable', Rule::in([Property::STATUS_DRAFT, Property::STATUS_ACTIVE, Property::STATUS_INACTIVE])],
             'city' => ['nullable', 'string', 'max:120'],
+            'location' => ['nullable', 'string', 'max:255'],
             'state' => ['nullable', 'string', 'max:120'],
             'country' => ['nullable', 'string', 'max:120'],
             'postal_code' => ['nullable', 'string', 'max:20'],
@@ -35,10 +36,10 @@ class PropertyRequest extends FormRequest
             'base_price' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
             'currency' => ['nullable', 'string', 'size:3'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:65535'],
-            'short_description' => ['nullable', 'string', 'max:300'],
+            'show_on_home' => ['nullable', 'boolean'],
             'description' => ['nullable', 'string', 'max:10000'],
             'amenities' => ['nullable', 'array'],
-            'amenities.*' => ['nullable', 'string', 'max:80'],
+            'amenities.*' => ['nullable', 'integer', 'exists:amenities,id'],
             'images' => ['array', 'max:8'],
             'images.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
         ];
@@ -58,6 +59,7 @@ class PropertyRequest extends FormRequest
             'property_type' => $validated['property_type'] ?? Property::TYPE_GUEST_HOUSE,
             'status' => $status,
             'city' => $validated['city'] ?? 'Unassigned',
+            'location' => $validated['location'] ?? null,
             'state' => $validated['state'] ?? null,
             'country' => $validated['country'] ?? 'India',
             'postal_code' => $validated['postal_code'] ?? null,
@@ -70,22 +72,21 @@ class PropertyRequest extends FormRequest
             'base_price_minor' => (int) round(((float) ($validated['base_price'] ?? 0)) * 100),
             'currency' => strtoupper($validated['currency'] ?? 'INR'),
             'sort_order' => $validated['sort_order'] ?? 0,
-            'short_description' => $validated['short_description'] ?? null,
+            'show_on_home' => $this->boolean('show_on_home'),
             'description' => $validated['description'] ?? null,
             'published_at' => $status === Property::STATUS_ACTIVE ? now() : null,
         ];
     }
 
     /**
-     * @return list<string>
+     * @return list<int>
      */
-    public function amenityNames(): array
+    public function amenityIds(): array
     {
         return collect($this->validated('amenities', []))
             ->filter()
-            ->map(fn (string $amenity) => trim($amenity))
-            ->filter()
-            ->unique(fn (string $amenity) => mb_strtolower($amenity))
+            ->map(fn (mixed $amenity) => (int) $amenity)
+            ->unique()
             ->values()
             ->all();
     }

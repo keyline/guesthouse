@@ -13,6 +13,17 @@ class Amenity extends Model
     protected $fillable = [
         'name',
         'icon',
+        'category',
+        'type',
+        'is_active',
+        'sort_order',
+    ];
+
+    /**
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'is_active' => 'boolean',
     ];
 
     public function properties(): BelongsToMany
@@ -23,5 +34,10 @@ class Amenity extends Model
     public function roomTypes(): BelongsToMany
     {
         return $this->belongsToMany(RoomType::class, 'amenity_room_type')->withTimestamps();
+    }
+
+    public function banquets(): BelongsToMany
+    {
+        return $this->belongsToMany(Banquet::class, 'banquet_amenity')->withTimestamps();
     }
 }

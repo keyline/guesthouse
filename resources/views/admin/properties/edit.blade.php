@@ -5,7 +5,7 @@
 @section('page-title', 'Edit '.$property->name)
 
 @section('header-actions')
-    <a href="{{ route('admin.properties.show', $property) }}" class="rounded bg-slate-200 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-300 transition">View Property</a>
+    <a href="{{ route('admin.properties.index') }}" class="inline-flex h-10 items-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-bold text-slate-700 shadow-sm">Back to Properties</a>
 @endsection
 
 @section('content')
@@ -25,8 +25,12 @@
         @method('PUT')
         @include('admin.properties._form')
         <div class="mt-4 flex justify-end gap-2">
-            <a href="{{ route('admin.properties.show', $property) }}" class="rounded bg-slate-200 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-300 transition">Cancel</a>
+            <a href="{{ route('admin.properties.index') }}" class="rounded bg-slate-200 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-300 transition">Cancel</a>
             <button class="rounded bg-sky-600 px-4 py-2 text-sm font-bold text-white hover:bg-sky-700 transition">Save Changes</button>
         </div>
     </form>
+
+    @if (session('status'))
+        @include('admin.partials.success-modal', ['message' => session('status')])
+    @endif
 @endsection

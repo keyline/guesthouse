@@ -138,12 +138,13 @@ class BookingController extends Controller
      */
     private function roomTypes(AdminPropertyScope $scope): array
     {
-        return $scope->apply(RoomType::query())
-            ->with('property')
+        return RoomType::query()
+            ->where('status', RoomType::STATUS_ACTIVE)
+            ->orderBy('sort_order')
             ->orderBy('name')
             ->get()
             ->mapWithKeys(fn (RoomType $roomType) => [
-                $roomType->id => $roomType->name.' - '.$roomType->property->name,
+                $roomType->id => $roomType->name,
             ])
             ->all();
     }

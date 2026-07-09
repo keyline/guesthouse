@@ -40,10 +40,11 @@ class AvailabilityService
             ->values();
     }
 
-    public function bookedRoomCount(int $roomTypeId, CarbonInterface $date): int
+    public function bookedRoomCount(int $roomTypeId, CarbonInterface $date, ?int $propertyId = null): int
     {
         return Booking::query()
             ->where('room_type_id', $roomTypeId)
+            ->when($propertyId, fn ($query, int $id) => $query->where('property_id', $id))
             ->whereIn('status', Booking::blockingStatuses())
             ->where('check_in_date', '<=', $date->toDateString())
             ->where('check_out_date', '>', $date->toDateString())

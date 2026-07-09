@@ -43,9 +43,8 @@
 
         <aside class="space-y-6">
             <section class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-                <h2 class="text-lg font-black">Booking Rules Base</h2>
+                <h2 class="text-lg font-black">Capacity & Rules</h2>
                 <dl class="mt-4 space-y-3 text-sm">
-                    <div class="flex justify-between gap-4"><dt class="font-semibold text-slate-500">Base price</dt><dd class="font-black">{{ $room->roomType->formattedBasePrice() }}</dd></div>
                     <div class="flex justify-between gap-4"><dt class="font-semibold text-slate-500">Adults</dt><dd class="font-black">{{ $room->roomType->max_adults }}</dd></div>
                     <div class="flex justify-between gap-4"><dt class="font-semibold text-slate-500">Children</dt><dd class="font-black">{{ $room->roomType->max_children }}</dd></div>
                     <div class="flex justify-between gap-4"><dt class="font-semibold text-slate-500">Smoking</dt><dd class="font-black">{{ $room->is_smoking ? 'Yes' : 'No' }}</dd></div>

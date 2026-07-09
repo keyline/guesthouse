@@ -48,7 +48,7 @@
                         <tr>
                             <td class="sticky left-0 bg-white px-5 py-4">
                                 <span class="block font-black">{{ $row['roomType']->name }}</span>
-                                <span class="text-xs font-semibold text-slate-500">{{ $row['roomType']->property->name }}</span>
+                                <span class="text-xs font-semibold text-slate-500">{{ $selectedPropertyName }}</span>
                             </td>
                             @foreach ($row['days'] as $day)
                                 @php
