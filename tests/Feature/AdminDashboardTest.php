@@ -28,10 +28,11 @@ class AdminDashboardTest extends TestCase
 
         $response
             ->assertOk()
-            ->assertSee('Dashboard')
-            ->assertSee('Management')
-            ->assertSee('Active Tasks')
-            ->assertSee('Operations Queue');
+            ->assertSee('Front Desk')
+            ->assertSee('Occupancy Tonight')
+            ->assertSee('Online Channel')
+            ->assertSee('Next 14 Nights')
+            ->assertSee('Recent Bookings');
     }
 
     public function test_customer_cannot_access_admin_dashboard(): void
