@@ -2,11 +2,27 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class RoomTypeInventory extends Model
 {
+    use LogsActivity;
+
+    /**
+     * Rows are created and rooms_sold is recomputed by the system on every
+     * booking sync — only manual edits (stop_sell, total_rooms) are audited.
+     *
+     * @var list<string>
+     */
+    protected $auditEvents = ['updated'];
+
+    /**
+     * @var list<string>
+     */
+    protected $auditExclude = ['rooms_sold'];
+
     protected $table = 'room_type_inventory';
 
     /**

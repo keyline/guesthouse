@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 
 class Booking extends Model
 {
+    use LogsActivity;
+
     public const STATUS_PENDING = 'pending';
 
     public const STATUS_CONFIRMED = 'confirmed';

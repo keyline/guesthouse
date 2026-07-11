@@ -100,10 +100,11 @@
                     'type' => 'group',
                     'label' => 'Settings',
                     'key' => 'settings',
-                    'patterns' => ['admin.settings.*'],
+                    'patterns' => ['admin.settings.*', 'admin.activity-log.*'],
                     'icon' => 'settings',
                     'children' => [
                         ['label' => 'General Settings', 'route' => 'admin.settings.index', 'patterns' => ['admin.settings.*']],
+                        ['label' => 'Activity Log', 'route' => 'admin.activity-log.index', 'patterns' => ['admin.activity-log.*']],
                         ['label' => 'System Config', 'route' => null, 'patterns' => []],
                         ['label' => 'Payment Gateways', 'route' => null, 'patterns' => []],
                     ],

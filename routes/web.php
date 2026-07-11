@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AmenityController;
@@ -120,6 +121,7 @@ Route::prefix('admin')
             ->name('banquet-images.destroy');
         Route::resource('admin-users', AdminUserController::class)
             ->middleware('role:'.User::ROLE_SUPER_ADMIN);
+        Route::get('/activity-log', ActivityLogController::class)->name('activity-log.index');
         Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
         Route::post('/settings', [SettingsController::class, 'update'])->name('settings.update');
         Route::post('/logout', [AdminSessionController::class, 'destroy'])->name('logout');
