@@ -24,6 +24,8 @@ class Booking extends Model
 
     public const SOURCE_WALK_IN = 'walk_in';
 
+    public const SOURCE_ONLINE = 'online';
+
     /**
      * @var list<string>
      */

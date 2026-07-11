@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -23,6 +24,7 @@ class Room extends Model
         'room_number',
         'floor',
         'status',
+        'is_online_bookable',
         'is_smoking',
         'is_accessible',
         'notes',
@@ -31,9 +33,17 @@ class Room extends Model
     protected function casts(): array
     {
         return [
+            'is_online_bookable' => 'boolean',
             'is_smoking' => 'boolean',
             'is_accessible' => 'boolean',
         ];
+    }
+
+    public function scopeOnlineBookable(Builder $query): Builder
+    {
+        return $query
+            ->where('is_online_bookable', true)
+            ->where('status', self::STATUS_AVAILABLE);
     }
 
     public function property(): BelongsTo

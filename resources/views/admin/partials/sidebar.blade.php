@@ -32,11 +32,12 @@
                     'type' => 'group',
                     'label' => 'Inventory',
                     'key' => 'inventory',
-                    'patterns' => ['admin.properties.*', 'admin.rooms.*', 'admin.room-types.*', 'admin.availability.*', 'admin.amenities.*', 'admin.banquets.*'],
+                    'patterns' => ['admin.properties.*', 'admin.rooms.*', 'admin.online-inventory.*', 'admin.room-types.*', 'admin.availability.*', 'admin.amenities.*', 'admin.banquets.*'],
                     'icon' => 'property',
                     'children' => [
                         ['label' => 'Properties', 'route' => 'admin.properties.index', 'patterns' => ['admin.properties.*']],
                         ['label' => 'Rooms', 'route' => 'admin.rooms.index', 'patterns' => ['admin.rooms.*']],
+                        ['label' => 'Online Inventory', 'route' => 'admin.online-inventory.index', 'patterns' => ['admin.online-inventory.*']],
                         ['label' => 'Room Types', 'route' => 'admin.room-types.index', 'patterns' => ['admin.room-types.*']],
                         ['label' => 'Banquet Halls', 'route' => 'admin.banquets.index', 'patterns' => ['admin.banquets.*']],
                         ['label' => 'Rates & Availability', 'route' => 'admin.availability.index', 'patterns' => ['admin.availability.*']],

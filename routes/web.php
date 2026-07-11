@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\BanquetController;
 use App\Http\Controllers\Admin\BanquetImageController;
 use App\Http\Controllers\Admin\BookingController;
 use App\Http\Controllers\Admin\GuestController;
+use App\Http\Controllers\Admin\OnlineInventoryController;
 use App\Http\Controllers\Admin\PropertyController;
 use App\Http\Controllers\Admin\PropertyContextController;
 use App\Http\Controllers\Admin\ProfileController;
@@ -101,6 +102,8 @@ Route::prefix('admin')
         Route::resource('amenities', AmenityController::class)->except(['show']);
         Route::resource('room-types', RoomTypeController::class);
         Route::resource('rooms', RoomController::class);
+        Route::get('/online-inventory', [OnlineInventoryController::class, 'index'])->name('online-inventory.index');
+        Route::put('/online-inventory', [OnlineInventoryController::class, 'update'])->name('online-inventory.update');
         Route::delete('/room-images/{roomImage}', [RoomImageController::class, 'destroy'])
             ->name('room-images.destroy');
         Route::resource('banquets', BanquetController::class);

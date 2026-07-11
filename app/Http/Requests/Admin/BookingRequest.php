@@ -146,6 +146,7 @@ class BookingRequest extends FormRequest
             Booking::SOURCE_DIRECT => 'Direct',
             Booking::SOURCE_PHONE => 'Phone',
             Booking::SOURCE_WALK_IN => 'Walk-in',
+            Booking::SOURCE_ONLINE => 'Online',
         ];
     }
 }
