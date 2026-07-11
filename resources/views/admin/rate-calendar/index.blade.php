@@ -49,7 +49,11 @@
                 <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
                     <div>
                         <h2 class="text-sm font-black text-slate-950">{{ $property->name }} — {{ $start->format('d M') }} to {{ $start->addDays(13)->format('d M Y') }}</h2>
-                        <p class="mt-0.5 text-xs font-semibold text-slate-500">Prices are per night in ₹. “✕” closes a rate for that night; stop-sell closes the whole room type.</p>
+                        <p class="mt-0.5 text-xs font-semibold text-slate-500">Each box is the price for one night — click a pill to toggle, then save.</p>
+                        <p class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-semibold text-slate-500">
+                            <span><span class="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-black text-emerald-700 ring-1 ring-emerald-200">Selling</span> / <span class="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-black text-rose-700 ring-1 ring-rose-300">🚫 Blocked</span> = whole room type</span>
+                            <span><span class="rounded-full px-2 py-0.5 text-[10px] font-black text-slate-400 ring-1 ring-slate-200">Open</span> / <span class="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-black text-rose-700 ring-1 ring-rose-300">✕ Closed</span> = that plan only</span>
+                        </p>
                     </div>
                     <button type="submit" class="h-10 rounded-lg bg-sky-600 px-5 text-sm font-black text-white transition hover:bg-sky-700">Save changes</button>
                 </div>
@@ -74,12 +78,14 @@
                                     @foreach ($dates as $date)
                                         @php $row = $inventory->get($roomTypeId.'|'.$date->toDateString()); @endphp
                                         <td class="px-1 py-1.5 text-center">
-                                            <span class="block text-[10px] font-bold {{ $row && $row->available() === 0 ? 'text-rose-600' : 'text-slate-500' }}">
-                                                {{ $row ? $row->available().'/'.$row->total_rooms : '—' }}
+                                            <span class="block text-[10px] font-bold {{ $row && $row->available() === 0 ? 'text-rose-600' : 'text-slate-500' }}"
+                                                  title="{{ $row ? $row->available().' of '.$row->total_rooms.' rooms still free this night' : 'No inventory data yet' }}">
+                                                {{ $row ? $row->available().' free' : '—' }}
                                             </span>
-                                            <label class="mt-0.5 inline-flex cursor-pointer items-center gap-1 text-[10px] font-bold text-slate-500" title="Stop-sell {{ $typeName }} on {{ $date->format('d M') }}">
-                                                <input type="checkbox" name="stop_sell[{{ $roomTypeId }}][{{ $date->toDateString() }}]" value="1" @checked($row?->stop_sell) class="h-3 w-3 rounded border-slate-300 text-rose-600">
-                                                stop
+                                            <label class="mt-1 inline-flex cursor-pointer" title="Block ALL new bookings for {{ $typeName }} on {{ $date->format('d M') }} (every plan)">
+                                                <input type="checkbox" name="stop_sell[{{ $roomTypeId }}][{{ $date->toDateString() }}]" value="1" @checked($row?->stop_sell) class="peer sr-only">
+                                                <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-black text-emerald-700 ring-1 ring-emerald-200 peer-checked:hidden">Selling</span>
+                                                <span class="hidden rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-black text-rose-700 ring-1 ring-rose-300 peer-checked:inline">🚫 Blocked</span>
                                             </label>
                                         </td>
                                     @endforeach
@@ -87,9 +93,21 @@
                                 @foreach ($plans as $plan)
                                     @php $rates = $plan->dailyRates->keyBy(fn ($rate) => $rate->date->toDateString()); @endphp
                                     <tr class="border-t border-slate-100">
+                                        @php
+                                            $mealLabel = match ($plan->meal_plan) {
+                                                'cp' => 'Room + breakfast',
+                                                'map' => 'Room + breakfast + 1 meal',
+                                                'ap' => 'Room + all meals',
+                                                default => 'Room only',
+                                            };
+                                        @endphp
                                         <td class="sticky left-0 bg-white px-4 py-2">
                                             <span class="block text-sm font-black text-slate-900">{{ $plan->name }}</span>
-                                            <span class="text-[11px] font-semibold text-slate-500">{{ strtoupper($plan->meal_plan) }} · rack ₹{{ number_format($plan->default_price_minor / 100) }}</span>
+                                            <span class="block text-[11px] font-semibold text-slate-500">{{ $mealLabel }}</span>
+                                            <span class="block text-[11px] font-semibold text-slate-400"
+                                                  title="The standard price. Any night without its own price below is sold at this amount. Change it in Room Types & Pricing.">
+                                                Standard ₹{{ number_format($plan->default_price_minor / 100) }}/night ⓘ
+                                            </span>
                                         </td>
                                         @foreach ($dates as $date)
                                             @php $rate = $rates->get($date->toDateString()); @endphp
@@ -99,9 +117,10 @@
                                                        value="{{ $rate ? number_format($rate->price_minor / 100, 2, '.', '') : '' }}"
                                                        placeholder="{{ number_format($plan->default_price_minor / 100, 0, '.', '') }}"
                                                        class="h-8 w-[72px] rounded-md border px-1.5 text-center text-xs font-bold {{ $rate?->closed ? 'border-rose-300 bg-rose-50 text-rose-700' : 'border-slate-300' }}">
-                                                <label class="mt-0.5 inline-flex cursor-pointer items-center gap-1 text-[10px] font-bold text-slate-400" title="Close this rate on {{ $date->format('d M') }}">
-                                                    <input type="checkbox" name="rates[{{ $plan->id }}][{{ $date->toDateString() }}][closed]" value="1" @checked($rate?->closed) class="h-3 w-3 rounded border-slate-300 text-rose-600">
-                                                    ✕
+                                                <label class="mt-1 inline-flex cursor-pointer" title="Close only this plan for {{ $date->format('d M') }} — other plans keep selling">
+                                                    <input type="checkbox" name="rates[{{ $plan->id }}][{{ $date->toDateString() }}][closed]" value="1" @checked($rate?->closed) class="peer sr-only">
+                                                    <span class="rounded-full px-2 py-0.5 text-[10px] font-black text-slate-400 ring-1 ring-slate-200 transition hover:text-slate-600 peer-checked:hidden">Open</span>
+                                                    <span class="hidden rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-black text-rose-700 ring-1 ring-rose-300 peer-checked:inline">✕ Closed</span>
                                                 </label>
                                             </td>
                                         @endforeach

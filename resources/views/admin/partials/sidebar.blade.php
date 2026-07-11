@@ -3,6 +3,8 @@
 
     $url = fn (string $route) => Route::has($route) ? route($route) : '#';
     $canManageAdmins = auth()->check() && auth()->user()->hasRole(\App\Models\User::ROLE_SUPER_ADMIN);
+    $brandName = $adminTheme?->site_name ?: config('app.name', 'Property Manager');
+    $brandInitial = mb_strtoupper(mb_substr($brandName, 0, 1));
     $navGroups = [
         [
             'title' => 'Main',
@@ -20,8 +22,7 @@
                     'patterns' => ['admin.bookings.*', 'admin.availability.*'],
                     'icon' => 'booking',
                     'children' => [
-                        ['label' => 'Bookings', 'route' => 'admin.bookings.index', 'patterns' => ['admin.bookings.*']],
-                        ['label' => 'Reservations', 'route' => 'admin.bookings.index', 'patterns' => []],
+                        ['label' => 'Reservations', 'route' => 'admin.bookings.index', 'patterns' => ['admin.bookings.*']],
                         ['label' => 'Check-in / Check-out', 'route' => 'admin.availability.index', 'patterns' => ['admin.availability.*']],
                         ['label' => 'Payments', 'route' => null, 'patterns' => []],
                         ['label' => 'Cancellations', 'route' => null, 'patterns' => []],
@@ -114,6 +115,23 @@
         ],
     ];
 
+    // Keep the navigation focused: unfinished modules should not compete with
+    // actions users can actually take.
+    $navGroups = array_values(array_filter(array_map(function (array $group): array {
+        $group['items'] = array_values(array_filter(array_map(function (array $item): array {
+            if ($item['type'] === 'group') {
+                $item['children'] = array_values(array_filter(
+                    $item['children'],
+                    fn (array $child): bool => filled($child['route']) && Route::has($child['route'])
+                ));
+            }
+
+            return $item;
+        }, $group['items']), fn (array $item): bool => $item['type'] === 'link' || count($item['children'])));
+
+        return $group;
+    }, $navGroups), fn (array $group): bool => count($group['items'])));
+
     $icons = [
         'dashboard' => '<path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>',
         'booking' => '<path d="M6 2a1 1 0 011 1v1h10V3a1 1 0 112 0v1h1a2 2 0 012 2v14a2 2 0 01-2 2H4a2 2 0 01-2-2L2 6a2 2 0 012-2h1V3a1 1 0 011-1zm14 8H4v10h16V10z"/>',
@@ -126,12 +144,18 @@
 @endphp
 
 <aside id="adminSidebar" class="admin-sidebar">
-    <div class="flex h-16 items-center justify-between border-b border-white/10 px-3">
+    <div class="admin-sidebar-header flex h-14 items-center justify-between border-b border-white/10 px-3">
         <a href="{{ route('admin.dashboard') }}" class="flex min-w-0 items-center gap-3 text-white no-underline">
-            <span class="admin-brand-mark">E</span>
+            <span class="admin-brand-mark">
+                @if ($adminTheme?->logo_path)
+                    <img src="{{ asset('storage/'.$adminTheme->logo_path) }}" alt="" class="h-full w-full rounded-[inherit] object-contain p-1">
+                @else
+                    {{ $brandInitial }}
+                @endif
+            </span>
             <span class="admin-brand-text min-w-0">
-                <span class="block text-[11px] font-black uppercase tracking-[0.24em] text-sky-300">EENNRA</span>
-                <span class="mt-0.5 block truncate text-sm font-black">Property ERP</span>
+                <span class="block max-w-[128px] truncate text-[13px] font-extrabold">{{ $brandName }}</span>
+                <span class="mt-0.5 block text-[8px] font-bold uppercase tracking-[0.17em] text-white/55">Property management</span>
             </span>
         </a>
 
@@ -142,22 +166,22 @@
         </button>
     </div>
 
-    <nav class="admin-nav-scroll flex-1 overflow-y-auto px-2 py-3">
+    <nav class="admin-nav-scroll flex-1 overflow-y-auto px-2 py-2.5">
         @foreach ($navGroups as $group)
             <div class="mb-3">
-                <p class="admin-nav-group-label px-2 pb-1.5 text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">{{ $group['title'] }}</p>
-                <div class="grid gap-1">
+                <p class="admin-nav-group-label px-2 pb-1 text-[8px] font-black uppercase tracking-[0.2em] text-white/40">{{ $group['title'] }}</p>
+                <div class="grid gap-0.5">
                     @foreach ($group['items'] as $item)
                         @if ($item['type'] === 'link')
                             @php $active = request()->routeIs(...$item['patterns']); @endphp
-                            <a href="{{ $url($item['route']) }}" class="admin-nav-link {{ $active ? 'is-active' : '' }}" title="{{ $item['label'] }}">
+                            <a href="{{ $url($item['route']) }}" class="admin-nav-link {{ $active ? 'is-active' : '' }}" data-tooltip="{{ $item['label'] }}" title="{{ $item['label'] }}">
                                 <span class="admin-nav-icon"><svg fill="currentColor" viewBox="0 0 24 24">{!! $icons[$item['icon']] !!}</svg></span>
                                 <span class="admin-nav-label">{{ $item['label'] }}</span>
                             </a>
                         @else
                             @php $active = count($item['patterns']) && request()->routeIs(...$item['patterns']); @endphp
                             <div class="admin-nav-group {{ $active ? 'is-open' : '' }}" data-nav-group="{{ $item['key'] }}">
-                                <button type="button" class="admin-nav-parent {{ $active ? 'is-active' : '' }}" title="{{ $item['label'] }}">
+                                <button type="button" class="admin-nav-parent {{ $active ? 'is-active' : '' }}" data-tooltip="{{ $item['label'] }}" title="{{ $item['label'] }}" aria-expanded="{{ $active ? 'true' : 'false' }}">
                                     <span class="admin-nav-icon"><svg fill="currentColor" viewBox="0 0 24 24">{!! $icons[$item['icon']] !!}</svg></span>
                                     <span class="admin-nav-label">{{ $item['label'] }}</span>
                                     <span class="admin-dropdown-arrow">
@@ -182,7 +206,7 @@
         @endforeach
     </nav>
 
-    <div class="border-t border-white/10 p-3">
+    <div class="border-t border-white/10 p-2">
         @auth
             <form method="POST" action="{{ route('admin.logout') }}">
                 @csrf
