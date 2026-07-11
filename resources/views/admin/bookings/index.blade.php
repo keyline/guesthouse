@@ -73,7 +73,7 @@
                                 <span class="text-xs font-semibold text-slate-500">{{ $booking->guest_phone ?: $booking->guest_email }}</span>
                             </td>
                             <td class="px-5 py-4 text-slate-600">{{ $booking->property->name }}</td>
-                            <td class="px-5 py-4 text-slate-600">{{ $booking->room?->room_number ?? 'Unassigned' }} / {{ $booking->roomType->name }}</td>
+                            <td class="px-5 py-4 text-slate-600">{{ $booking->room?->room_number ?? 'Unassigned' }} / {{ $booking->roomType->name }}@if ($booking->ratePlan && $booking->ratePlan->meal_plan !== 'ep') <span class="rounded bg-amber-50 px-1 text-[10px] font-black text-amber-800">{{ strtoupper($booking->ratePlan->meal_plan) }} 🍳</span>@endif</td>
                             <td class="px-5 py-4 text-slate-600">{{ $booking->check_in_date->format('M j') }} - {{ $booking->check_out_date->format('M j, Y') }}</td>
                             <td class="px-5 py-4 font-bold">{{ $booking->formattedTotal() }}</td>
                             <td class="px-5 py-4"><span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-black text-slate-700">{{ str_replace('_', ' ', ucfirst($booking->status)) }}</span></td>

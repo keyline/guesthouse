@@ -61,6 +61,9 @@ class Setting extends Model
         'social_media_links',
         'meta_description',
         'meta_keywords',
+        'admin_sidebar_color',
+        'admin_primary_color',
+        'admin_accent_color',
     ];
 
     protected $casts = [

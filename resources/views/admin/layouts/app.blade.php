@@ -1,3 +1,14 @@
+@php
+    $adminTheme = \Illuminate\Support\Facades\Schema::hasTable('settings')
+        ? \App\Models\Setting::query()->first()
+        : null;
+    $safeThemeColor = static fn ($value, $fallback) => is_string($value) && preg_match('/^#[0-9a-f]{6}$/i', $value)
+        ? $value
+        : $fallback;
+    $sidebarColor = $safeThemeColor($adminTheme?->admin_sidebar_color, '#53647f');
+    $primaryColor = $safeThemeColor($adminTheme?->admin_primary_color, '#2563eb');
+    $accentColor = $safeThemeColor($adminTheme?->admin_accent_color, '#7dd3fc');
+@endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
@@ -12,17 +23,18 @@
 
     <style>
         :root {
-            --admin-sidebar-width: 272px;
-            --admin-sidebar-collapsed-width: 76px;
+            --admin-sidebar-width: 248px;
+            --admin-sidebar-collapsed-width: 68px;
             --admin-bg: #f4f7fb;
             --admin-card: #ffffff;
             --admin-border: #dfe7f1;
             --admin-text: #0f172a;
             --admin-muted: #64748b;
-            --admin-primary: #0f5eaa;
-            --admin-primary-dark: #0b477f;
-            --admin-sidebar: #0b1630;
-            --admin-sidebar-soft: #111f3d;
+            --admin-primary: {{ $primaryColor }};
+            --admin-primary-dark: color-mix(in srgb, {{ $primaryColor }} 78%, #000);
+            --admin-accent: {{ $accentColor }};
+            --admin-sidebar: {{ $sidebarColor }};
+            --admin-sidebar-soft: color-mix(in srgb, {{ $sidebarColor }} 88%, #000);
             --admin-sidebar-text: #cbd5e1;
             --admin-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
         }
@@ -44,7 +56,7 @@
             width: var(--admin-sidebar-width);
             flex-direction: column;
             border-right: 1px solid rgba(148, 163, 184, 0.18);
-            background: linear-gradient(180deg, #0b1630 0%, #0e1b38 58%, #101f40 100%);
+            background: linear-gradient(180deg, color-mix(in srgb, var(--admin-sidebar) 96%, #fff) 0%, var(--admin-sidebar) 52%, color-mix(in srgb, var(--admin-sidebar) 82%, #000) 100%);
             color: var(--admin-sidebar-text);
             transition: width 220ms var(--admin-ease), transform 220ms var(--admin-ease);
         }
@@ -118,12 +130,12 @@
 
         .admin-brand-mark {
             display: grid;
-            height: 38px;
-            width: 38px;
-            min-width: 38px;
+            height: 36px;
+            width: 36px;
+            min-width: 36px;
             place-items: center;
             border-radius: 10px;
-            background: linear-gradient(135deg, #38bdf8, #2563eb);
+            background: linear-gradient(135deg, var(--admin-accent), var(--admin-primary));
             color: #fff;
             font-size: 14px;
             font-weight: 900;
@@ -167,16 +179,16 @@
         .admin-nav-parent,
         .admin-nav-link {
             display: flex;
-            min-height: 36px;
+            min-height: 38px;
             width: 100%;
             align-items: center;
             gap: 10px;
             border: 0;
-            border-radius: 8px;
+            border-radius: 7px;
             background: transparent;
             color: #cbd5e1;
             font-size: 13px;
-            font-weight: 750;
+            font-weight: 650;
             line-height: 1;
             padding: 0 10px;
             text-decoration: none;
@@ -191,9 +203,9 @@
 
         .admin-nav-parent.is-active,
         .admin-nav-link.is-active {
-            background: #1d4ed8;
+            background: color-mix(in srgb, var(--admin-primary) 50%, transparent);
             color: #fff;
-            box-shadow: inset 3px 0 0 #7dd3fc;
+            box-shadow: inset 3px 0 0 var(--admin-accent), 0 5px 14px rgba(15, 23, 42, 0.12);
         }
 
         .admin-nav-icon {
@@ -226,7 +238,7 @@
 
         .admin-nav-child {
             display: flex;
-            min-height: 28px;
+            min-height: 30px;
             align-items: center;
             border-radius: 7px;
             color: #94a3b8;
@@ -240,6 +252,43 @@
         .admin-nav-child.is-active {
             background: rgba(255, 255, 255, 0.07);
             color: #fff;
+        }
+
+        .admin-nav-child.is-active::before {
+            width: 5px;
+            height: 5px;
+            margin-right: 8px;
+            border-radius: 999px;
+            background: var(--admin-accent);
+            content: '';
+        }
+
+        .admin-shell.is-collapsed .admin-nav-parent,
+        .admin-shell.is-collapsed .admin-nav-link {
+            justify-content: center;
+            padding-inline: 0;
+        }
+
+        .admin-shell.is-collapsed [data-tooltip] {
+            position: relative;
+        }
+
+        .admin-shell.is-collapsed [data-tooltip]:hover::after {
+            position: absolute;
+            left: calc(100% + 13px);
+            z-index: 60;
+            width: max-content;
+            max-width: 180px;
+            border-radius: 7px;
+            background: #0f172a;
+            color: #fff;
+            content: attr(data-tooltip);
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1;
+            padding: 9px 10px;
+            pointer-events: none;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, .24);
         }
 
         .admin-shell.is-collapsed .admin-nav-children {

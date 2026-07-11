@@ -32,7 +32,7 @@
                     'type' => 'group',
                     'label' => 'Inventory',
                     'key' => 'inventory',
-                    'patterns' => ['admin.properties.*', 'admin.rooms.*', 'admin.online-inventory.*', 'admin.rate-calendar.*', 'admin.room-types.*', 'admin.availability.*', 'admin.amenities.*', 'admin.banquets.*'],
+                    'patterns' => ['admin.properties.*', 'admin.rooms.*', 'admin.online-inventory.*', 'admin.rate-plans.*', 'admin.rate-calendar.*', 'admin.room-types.*', 'admin.availability.*', 'admin.amenities.*', 'admin.banquets.*'],
                     'icon' => 'property',
                     'children' => [
                         ['label' => 'Properties', 'route' => 'admin.properties.index', 'patterns' => ['admin.properties.*']],
@@ -40,6 +40,7 @@
                         ['label' => 'Online Inventory', 'route' => 'admin.online-inventory.index', 'patterns' => ['admin.online-inventory.*']],
                         ['label' => 'Room Types', 'route' => 'admin.room-types.index', 'patterns' => ['admin.room-types.*']],
                         ['label' => 'Banquet Halls', 'route' => 'admin.banquets.index', 'patterns' => ['admin.banquets.*']],
+                        ['label' => 'Room Types & Pricing', 'route' => 'admin.rate-plans.index', 'patterns' => ['admin.rate-plans.*']],
                         ['label' => 'Rate Calendar', 'route' => 'admin.rate-calendar.index', 'patterns' => ['admin.rate-calendar.*']],
                         ['label' => 'Rates & Availability', 'route' => 'admin.availability.index', 'patterns' => ['admin.availability.*']],
                         ['label' => 'Amenities', 'route' => 'admin.amenities.index', 'patterns' => ['admin.amenities.*']],

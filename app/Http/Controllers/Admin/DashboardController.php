@@ -28,10 +28,15 @@ class DashboardController extends Controller
         $onlineRooms = $sellableRooms->where('is_online_bookable', true);
 
         $stayingTonight = $scope->apply(Booking::query())
+            ->with('ratePlan')
             ->whereIn('status', Booking::blockingStatuses())
             ->whereDate('check_in_date', '<=', $date->toDateString())
             ->whereDate('check_out_date', '>', $date->toDateString())
             ->get();
+
+        $breakfastsTomorrow = $stayingTonight
+            ->filter(fn (Booking $booking) => $booking->ratePlan && $booking->ratePlan->meal_plan !== 'ep')
+            ->sum(fn (Booking $booking) => $booking->adults + $booking->children);
 
         $arrivals = $stayingTonight->filter(
             fn (Booking $booking) => $booking->check_in_date->isSameDay($date)
@@ -69,6 +74,7 @@ class DashboardController extends Controller
                 'inHouse' => $stayingTonight->count(),
                 'onlineSold' => $onlineSold,
                 'onlineAllotment' => $onlineRooms->count(),
+                'breakfasts' => $breakfastsTomorrow,
             ],
             'roomGrid' => $selectedProperty
                 ? $this->roomGrid($rooms, $bookedRoomIds, $onlineBookedRoomIds)

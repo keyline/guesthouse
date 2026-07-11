@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Support\AdminNavigation;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class SettingsController extends Controller
 {
@@ -97,6 +98,18 @@ class SettingsController extends Controller
             'enable_online_payment' => 'boolean',
             'logo' => 'nullable|image|mimes:jpeg,png,svg,webp|max:2048',
             'favicon' => 'nullable|image|mimes:jpeg,png,ico,svg|max:512',
+            'admin_sidebar_color' => [
+                Rule::excludeIf(! $request->user()->hasRole(\App\Models\User::ROLE_SUPER_ADMIN)),
+                'nullable', 'regex:/^#[0-9A-Fa-f]{6}$/',
+            ],
+            'admin_primary_color' => [
+                Rule::excludeIf(! $request->user()->hasRole(\App\Models\User::ROLE_SUPER_ADMIN)),
+                'nullable', 'regex:/^#[0-9A-Fa-f]{6}$/',
+            ],
+            'admin_accent_color' => [
+                Rule::excludeIf(! $request->user()->hasRole(\App\Models\User::ROLE_SUPER_ADMIN)),
+                'nullable', 'regex:/^#[0-9A-Fa-f]{6}$/',
+            ],
         ]);
 
         $settings = Setting::first() ?? new Setting();

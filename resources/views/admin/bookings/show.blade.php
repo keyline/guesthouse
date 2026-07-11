@@ -20,7 +20,14 @@
                 <div>
                     <p class="text-sm font-bold uppercase tracking-wide text-slate-500">{{ $booking->property->name }}</p>
                     <h2 class="mt-1 text-2xl font-black">{{ $booking->guest_name }}</h2>
-                    <p class="mt-2 text-sm font-semibold text-slate-500">{{ $booking->roomType->name }} / {{ $booking->room ? 'Room '.$booking->room->room_number : 'Room not assigned yet' }}</p>
+                    <p class="mt-2 text-sm font-semibold text-slate-500">
+                        {{ $booking->roomType->name }} / {{ $booking->room ? 'Room '.$booking->room->room_number : 'Room not assigned yet' }}
+                        @if ($booking->ratePlan)
+                            <span class="ml-1 rounded-full px-2 py-0.5 text-[11px] font-black ring-1 {{ $booking->ratePlan->meal_plan === 'ep' ? 'bg-slate-100 text-slate-600 ring-slate-200' : 'bg-amber-50 text-amber-800 ring-amber-200' }}" title="{{ $booking->ratePlan->name }}">
+                                {{ strtoupper($booking->ratePlan->meal_plan) }}{{ $booking->ratePlan->meal_plan !== 'ep' ? ' 🍳' : '' }}
+                            </span>
+                        @endif
+                    </p>
                 </div>
                 <span class="w-fit rounded-full bg-slate-950 px-3 py-1 text-xs font-black uppercase tracking-wide text-white">{{ str_replace('_', ' ', $booking->status) }}</span>
             </div>

@@ -24,7 +24,7 @@ class BookingController extends Controller
     public function index(Request $request, AdminPropertyScope $scope): View
     {
         $bookings = $scope->apply(Booking::query())
-            ->with(['property', 'roomType', 'room'])
+            ->with(['property', 'roomType', 'room', 'ratePlan'])
             ->when($request->integer('property_id'), fn ($query, int $propertyId) => $query->where('property_id', $propertyId))
             ->when($request->string('status')->toString(), fn ($query, string $status) => $query->where('status', $status))
             ->when($request->date('from'), fn ($query, $from) => $query->where('check_out_date', '>', $from))
@@ -87,7 +87,7 @@ class BookingController extends Controller
     public function show(Booking $booking, AdminPropertyScope $scope, AvailabilityService $availability): View
     {
         abort_unless($scope->canAccessProperty($booking->property_id), 404);
-        $booking->load(['property', 'roomType', 'room']);
+        $booking->load(['property', 'roomType', 'room', 'ratePlan']);
 
         $assignableRooms = $booking->room_id
             ? collect()

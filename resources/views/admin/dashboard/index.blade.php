@@ -15,7 +15,7 @@
 
 @section('content')
     {{-- Band 1 · Tonight at a glance --}}
-    <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+    <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
         <article class="admin-card p-4">
             <p class="text-[11px] font-black uppercase tracking-wide text-slate-500">Occupancy Tonight</p>
             <div class="mt-2 flex items-end justify-between gap-2">
@@ -50,6 +50,12 @@
             <p class="mt-2 text-3xl font-black tracking-tight text-slate-950">{{ $kpis['onlineSold'] }}<span class="text-base font-bold text-slate-400"> / {{ $kpis['onlineAllotment'] }}</span></p>
             <p class="mt-1 text-xs font-bold text-slate-500">online rooms sold tonight</p>
         </a>
+
+        <article class="admin-card p-4">
+            <p class="text-[11px] font-black uppercase tracking-wide text-amber-600">🍳 Breakfasts</p>
+            <p class="mt-2 text-3xl font-black tracking-tight text-slate-950">{{ $kpis['breakfasts'] }}</p>
+            <p class="mt-1 text-xs font-bold text-slate-500">to serve tomorrow morning</p>
+        </article>
     </div>
 
     {{-- Band 2 · Room status grid / portfolio --}}

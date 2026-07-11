@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\PropertyContextController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\PropertyImageController;
 use App\Http\Controllers\Admin\RateCalendarController;
+use App\Http\Controllers\Admin\RatePlanController;
 use App\Http\Controllers\Admin\RoomController;
 use App\Http\Controllers\Admin\RoomImageController;
 use App\Http\Controllers\Admin\RoomTypeController;
@@ -112,6 +113,10 @@ Route::prefix('admin')
         Route::resource('rooms', RoomController::class);
         Route::get('/online-inventory', [OnlineInventoryController::class, 'index'])->name('online-inventory.index');
         Route::put('/online-inventory', [OnlineInventoryController::class, 'update'])->name('online-inventory.update');
+        Route::get('/room-pricing', [RatePlanController::class, 'index'])->name('rate-plans.index');
+        Route::post('/rate-plans', [RatePlanController::class, 'store'])->name('rate-plans.store');
+        Route::put('/rate-plans/{ratePlan}', [RatePlanController::class, 'update'])->name('rate-plans.update');
+        Route::post('/rate-plans/{ratePlan}/toggle', [RatePlanController::class, 'toggle'])->name('rate-plans.toggle');
         Route::get('/rate-calendar', [RateCalendarController::class, 'index'])->name('rate-calendar.index');
         Route::put('/rate-calendar', [RateCalendarController::class, 'update'])->name('rate-calendar.update');
         Route::delete('/room-images/{roomImage}', [RoomImageController::class, 'destroy'])
