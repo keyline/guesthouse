@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin;
 
 use App\Models\Booking;
 use App\Models\Property;
+use App\Models\RatePlan;
 use App\Models\Room;
 use App\Models\RoomType;
 use App\Models\User;
@@ -34,11 +35,19 @@ class BookingRequest extends FormRequest
                 Rule::exists(RoomType::class, 'id'),
             ],
             'room_id' => [
-                'required',
+                'nullable',
                 'integer',
                 Rule::exists(Room::class, 'id')
                     ->where('property_id', $this->integer('property_id'))
                     ->where('room_type_id', $this->integer('room_type_id')),
+            ],
+            'rate_plan_id' => [
+                'nullable',
+                'integer',
+                Rule::exists(RatePlan::class, 'id')
+                    ->where('property_id', $this->integer('property_id'))
+                    ->where('room_type_id', $this->integer('room_type_id'))
+                    ->where('status', RatePlan::STATUS_ACTIVE),
             ],
             'user_id' => ['nullable', 'integer', Rule::exists(User::class, 'id')->where('role', User::ROLE_CUSTOMER)],
             'status' => ['required', Rule::in(array_keys($this->statuses()))],
@@ -50,7 +59,7 @@ class BookingRequest extends FormRequest
             'check_out_date' => ['required', 'date', 'after:check_in_date'],
             'adults' => ['required', 'integer', 'min:1', 'max:20'],
             'children' => ['required', 'integer', 'min:0', 'max:20'],
-            'total_amount' => ['required', 'numeric', 'min:0', 'max:99999999'],
+            'total_amount' => ['nullable', 'required_without:rate_plan_id', 'numeric', 'min:0', 'max:99999999'],
             'currency' => ['required', 'string', 'size:3'],
             'special_requests' => ['nullable', 'string', 'max:3000'],
             'internal_notes' => ['nullable', 'string', 'max:3000'],
@@ -71,21 +80,48 @@ class BookingRequest extends FormRequest
                     return;
                 }
 
-                $room = Room::query()->find($this->integer('room_id'));
-
-                if (! $room) {
-                    return;
-                }
-
                 $booking = $this->route('booking');
                 $checkIn = CarbonImmutable::parse($this->input('check_in_date'));
                 $checkOut = CarbonImmutable::parse($this->input('check_out_date'));
+                $isBlocking = in_array($this->input('status'), Booking::blockingStatuses(), true);
+                $availability = app(AvailabilityService::class);
 
-                $available = app(AvailabilityService::class)
-                    ->roomIsAvailable($room, $checkIn, $checkOut, $booking?->id);
+                if ($room = Room::query()->find($this->integer('room_id'))) {
+                    $roomIsFree = $availability->roomIsAvailable($room, $checkIn, $checkOut, $booking?->id);
 
-                if (! $available && in_array($this->input('status'), Booking::blockingStatuses(), true)) {
-                    $validator->errors()->add('room_id', 'This room is not available for the selected dates.');
+                    if (! $roomIsFree && $isBlocking) {
+                        $validator->errors()->add('room_id', 'This room is not available for the selected dates.');
+
+                        return;
+                    }
+                }
+
+                if ($isBlocking) {
+                    $capacity = $availability->typeAvailability(
+                        $this->integer('property_id'),
+                        $this->integer('room_type_id'),
+                        $checkIn,
+                        $checkOut,
+                        $booking?->id,
+                    );
+
+                    if ($capacity < 1) {
+                        $validator->errors()->add('room_type_id', 'No rooms of this type are available for the selected dates (sold out or stop-sell).');
+
+                        return;
+                    }
+                }
+
+                if (! $this->filled('total_amount') && ! $this->filled('rate_plan_id')) {
+                    return;
+                }
+
+                if (! $this->filled('total_amount')) {
+                    $ratePlan = RatePlan::query()->find($this->integer('rate_plan_id'));
+
+                    if ($ratePlan && $availability->quote($ratePlan, $checkIn, $checkOut) === null) {
+                        $validator->errors()->add('rate_plan_id', 'This rate plan is closed for one or more of the selected nights — enter a price manually or pick different dates.');
+                    }
                 }
             },
         ];
@@ -100,10 +136,19 @@ class BookingRequest extends FormRequest
         $checkIn = CarbonImmutable::parse($validated['check_in_date']);
         $checkOut = CarbonImmutable::parse($validated['check_out_date']);
 
+        $ratePlan = isset($validated['rate_plan_id'])
+            ? RatePlan::query()->find($validated['rate_plan_id'])
+            : null;
+
+        $totalMinor = isset($validated['total_amount']) && $validated['total_amount'] !== null
+            ? (int) round(((float) $validated['total_amount']) * 100)
+            : (int) app(AvailabilityService::class)->quote($ratePlan, $checkIn, $checkOut);
+
         return [
             'property_id' => $validated['property_id'],
             'room_type_id' => $validated['room_type_id'],
-            'room_id' => $validated['room_id'],
+            'room_id' => $validated['room_id'] ?? null,
+            'rate_plan_id' => $ratePlan?->id,
             'user_id' => $validated['user_id'] ?? null,
             'status' => $validated['status'],
             'source' => $validated['source'],
@@ -115,7 +160,7 @@ class BookingRequest extends FormRequest
             'nights' => $checkIn->diffInDays($checkOut),
             'adults' => $validated['adults'],
             'children' => $validated['children'],
-            'total_amount_minor' => (int) round(((float) $validated['total_amount']) * 100),
+            'total_amount_minor' => $totalMinor,
             'currency' => strtoupper($validated['currency']),
             'special_requests' => $validated['special_requests'] ?? null,
             'internal_notes' => $validated['internal_notes'] ?? null,

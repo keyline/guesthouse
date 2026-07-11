@@ -6,14 +6,17 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\BookingRequest;
 use App\Models\Booking;
 use App\Models\Property;
+use App\Models\RatePlan;
 use App\Models\Room;
 use App\Models\RoomType;
 use App\Models\User;
+use App\Services\Booking\InventoryService;
 use App\Support\AdminNavigation;
 use App\Support\AdminPropertyScope;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class BookingController extends Controller
 {
@@ -58,6 +61,7 @@ class BookingController extends Controller
             'properties' => $this->properties($scope),
             'roomTypes' => $this->roomTypes($scope),
             'rooms' => $this->rooms($scope),
+            'ratePlans' => $this->ratePlans($scope),
             'guests' => $this->guests(),
             'statuses' => $this->statuses(),
             'sources' => $this->sources(),
@@ -65,9 +69,14 @@ class BookingController extends Controller
         ]);
     }
 
-    public function store(BookingRequest $request): RedirectResponse
+    public function store(BookingRequest $request, InventoryService $inventory): RedirectResponse
     {
-        $booking = Booking::query()->create($request->attributesForModel());
+        $booking = DB::transaction(function () use ($request, $inventory): Booking {
+            $booking = Booking::query()->create($request->attributesForModel());
+            $inventory->syncBooking($booking);
+
+            return $booking;
+        });
 
         return redirect()
             ->route('admin.bookings.show', $booking)
@@ -94,6 +103,7 @@ class BookingController extends Controller
             'properties' => $this->properties($scope),
             'roomTypes' => $this->roomTypes($scope),
             'rooms' => $this->rooms($scope),
+            'ratePlans' => $this->ratePlans($scope),
             'guests' => $this->guests(),
             'statuses' => $this->statuses(),
             'sources' => $this->sources(),
@@ -101,24 +111,38 @@ class BookingController extends Controller
         ]);
     }
 
-    public function update(BookingRequest $request, Booking $booking, AdminPropertyScope $scope): RedirectResponse
+    public function update(BookingRequest $request, Booking $booking, AdminPropertyScope $scope, InventoryService $inventory): RedirectResponse
     {
         abort_unless($scope->canAccessProperty($booking->property_id), 404);
-        $booking->update($request->attributesForModel());
+
+        $previous = [
+            'property_id' => $booking->property_id,
+            'room_type_id' => $booking->room_type_id,
+            'check_in_date' => $booking->check_in_date->toDateString(),
+            'check_out_date' => $booking->check_out_date->toDateString(),
+        ];
+
+        DB::transaction(function () use ($request, $booking, $inventory, $previous): void {
+            $booking->update($request->attributesForModel());
+            $inventory->syncBooking($booking, $previous);
+        });
 
         return redirect()
             ->route('admin.bookings.show', $booking)
             ->with('status', 'Booking updated successfully.');
     }
 
-    public function destroy(Booking $booking, AdminPropertyScope $scope): RedirectResponse
+    public function destroy(Booking $booking, AdminPropertyScope $scope, InventoryService $inventory): RedirectResponse
     {
         abort_unless($scope->canAccessProperty($booking->property_id), 404);
 
-        $booking->update([
-            'status' => Booking::STATUS_CANCELLED,
-            'cancelled_at' => now(),
-        ]);
+        DB::transaction(function () use ($booking, $inventory): void {
+            $booking->update([
+                'status' => Booking::STATUS_CANCELLED,
+                'cancelled_at' => now(),
+            ]);
+            $inventory->syncBooking($booking);
+        });
 
         return redirect()
             ->route('admin.bookings.index')
@@ -160,6 +184,23 @@ class BookingController extends Controller
             ->get()
             ->mapWithKeys(fn (Room $room) => [
                 $room->id => $room->room_number.' - '.$room->roomType->name.' - '.$room->property->name,
+            ])
+            ->all();
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function ratePlans(AdminPropertyScope $scope): array
+    {
+        return $scope->applyAccessible(RatePlan::query())
+            ->with(['roomType', 'property'])
+            ->where('status', RatePlan::STATUS_ACTIVE)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get()
+            ->mapWithKeys(fn (RatePlan $plan) => [
+                $plan->id => $plan->name.' - '.$plan->roomType->name.' - '.$plan->property->name,
             ])
             ->all();
     }

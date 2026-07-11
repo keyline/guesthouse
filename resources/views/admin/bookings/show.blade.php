@@ -20,7 +20,7 @@
                 <div>
                     <p class="text-sm font-bold uppercase tracking-wide text-slate-500">{{ $booking->property->name }}</p>
                     <h2 class="mt-1 text-2xl font-black">{{ $booking->guest_name }}</h2>
-                    <p class="mt-2 text-sm font-semibold text-slate-500">{{ $booking->roomType->name }} / Room {{ $booking->room->room_number }}</p>
+                    <p class="mt-2 text-sm font-semibold text-slate-500">{{ $booking->roomType->name }} / {{ $booking->room ? 'Room '.$booking->room->room_number : 'Room not assigned yet' }}</p>
                 </div>
                 <span class="w-fit rounded-full bg-slate-950 px-3 py-1 text-xs font-black uppercase tracking-wide text-white">{{ str_replace('_', ' ', $booking->status) }}</span>
             </div>

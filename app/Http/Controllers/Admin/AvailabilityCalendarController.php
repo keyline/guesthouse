@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Property;
 use App\Models\RoomType;
+use App\Models\RoomTypeInventory;
 use App\Services\Booking\AvailabilityService;
 use App\Support\AdminNavigation;
 use App\Support\AdminPropertyScope;
@@ -32,18 +33,38 @@ class AvailabilityCalendarController extends Controller
             ->orderBy('name')
             ->get();
 
+        $inventory = $propertyId
+            ? RoomTypeInventory::query()
+                ->where('property_id', $propertyId)
+                ->whereDate('date', '>=', $start->toDateString())
+                ->whereDate('date', '<=', $start->addDays(13)->toDateString())
+                ->get()
+                ->keyBy(fn (RoomTypeInventory $row) => $row->room_type_id.'|'.$row->date->toDateString())
+            : collect();
+
         $calendarRows = $roomTypes->filter(fn (RoomType $roomType): bool => $roomType->rooms_count > 0)
-            ->map(function (RoomType $roomType) use ($dates, $availability, $propertyId): array {
+            ->map(function (RoomType $roomType) use ($dates, $availability, $propertyId, $inventory): array {
                 return [
                     'roomType' => $roomType,
-                    'days' => $dates->map(function (CarbonImmutable $date) use ($roomType, $availability, $propertyId): array {
+                    'days' => $dates->map(function (CarbonImmutable $date) use ($roomType, $availability, $propertyId, $inventory): array {
+                        $row = $inventory->get($roomType->id.'|'.$date->toDateString());
+
+                        if ($row) {
+                            return [
+                                'date' => $date,
+                                'booked' => $row->rooms_sold,
+                                'available' => $row->available(),
+                                'stopSell' => $row->stop_sell,
+                            ];
+                        }
+
                         $booked = $availability->bookedRoomCount($roomType->id, $date, $propertyId);
-                        $available = max(0, $roomType->rooms_count - $booked);
 
                         return [
                             'date' => $date,
                             'booked' => $booked,
-                            'available' => $available,
+                            'available' => max(0, $roomType->rooms_count - $booked),
+                            'stopSell' => false,
                         ];
                     }),
                 ];

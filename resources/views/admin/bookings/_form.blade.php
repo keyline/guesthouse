@@ -1,5 +1,5 @@
 @php
-    $totalAmount = old('total_amount', $booking->exists ? number_format($booking->total_amount_minor / 100, 2, '.', '') : '0.00');
+    $totalAmount = old('total_amount', $booking->exists ? number_format($booking->total_amount_minor / 100, 2, '.', '') : '');
 @endphp
 
 <div class="grid gap-6 xl:grid-cols-[1.35fr_0.75fr]">
@@ -29,14 +29,25 @@
             </div>
 
             <div>
-                <label for="room_id" class="text-sm font-bold text-slate-700">Room</label>
-                <select id="room_id" name="room_id" required class="mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm">
-                    <option value="">Select room</option>
+                <label for="room_id" class="text-sm font-bold text-slate-700">Room <span class="font-semibold text-slate-400">(optional — assign at check-in)</span></label>
+                <select id="room_id" name="room_id" class="mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm">
+                    <option value="">Assign at check-in</option>
                     @foreach ($rooms as $id => $name)
                         <option value="{{ $id }}" @selected((int) old('room_id', $booking->room_id) === $id)>{{ $name }}</option>
                     @endforeach
                 </select>
                 @error('room_id')<p class="mt-2 text-sm font-semibold text-rose-700">{{ $message }}</p>@enderror
+            </div>
+
+            <div>
+                <label for="rate_plan_id" class="text-sm font-bold text-slate-700">Rate plan</label>
+                <select id="rate_plan_id" name="rate_plan_id" class="mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm">
+                    <option value="">Manual price</option>
+                    @foreach ($ratePlans as $id => $name)
+                        <option value="{{ $id }}" @selected((int) old('rate_plan_id', $booking->rate_plan_id) === $id)>{{ $name }}</option>
+                    @endforeach
+                </select>
+                @error('rate_plan_id')<p class="mt-2 text-sm font-semibold text-rose-700">{{ $message }}</p>@enderror
             </div>
 
             <div>
@@ -118,7 +129,9 @@
             <div class="mt-5 grid grid-cols-2 gap-3">
                 <div>
                     <label for="total_amount" class="text-sm font-bold text-slate-700">Total</label>
-                    <input id="total_amount" name="total_amount" type="number" min="0" step="0.01" value="{{ $totalAmount }}" required class="mt-2 h-11 w-full rounded-lg border border-slate-300 px-3 text-sm">
+                    <input id="total_amount" name="total_amount" type="number" min="0" step="0.01" value="{{ $totalAmount }}" placeholder="Auto from rate plan" class="mt-2 h-11 w-full rounded-lg border border-slate-300 px-3 text-sm">
+                    @error('total_amount')<p class="mt-2 text-sm font-semibold text-rose-700">{{ $message }}</p>@enderror
+                    <p class="mt-1 text-[11px] font-semibold text-slate-500">Leave blank to price from the selected rate plan.</p>
                 </div>
                 <div>
                     <label for="currency" class="text-sm font-bold text-slate-700">Currency</label>

@@ -52,11 +52,14 @@
                             </td>
                             @foreach ($row['days'] as $day)
                                 @php
-                                    $tone = $day['available'] > 2 ? 'bg-emerald-50 text-emerald-700' : ($day['available'] > 0 ? 'bg-amber-50 text-amber-700' : 'bg-rose-50 text-rose-700');
+                                    $stopSell = $day['stopSell'] ?? false;
+                                    $tone = $stopSell
+                                        ? 'bg-slate-200 text-slate-600'
+                                        : ($day['available'] > 2 ? 'bg-emerald-50 text-emerald-700' : ($day['available'] > 0 ? 'bg-amber-50 text-amber-700' : 'bg-rose-50 text-rose-700'));
                                 @endphp
                                 <td class="px-3 py-4 text-center">
-                                    <span class="inline-flex min-w-12 justify-center rounded-full px-2.5 py-1 text-xs font-black {{ $tone }}">{{ $day['available'] }}</span>
-                                    <span class="mt-1 block text-[11px] font-semibold text-slate-400">{{ $day['booked'] }} booked</span>
+                                    <span class="inline-flex min-w-12 justify-center rounded-full px-2.5 py-1 text-xs font-black {{ $tone }}" @if ($stopSell) title="Stop-sell: closed for new bookings" @endif>{{ $stopSell ? '✕' : $day['available'] }}</span>
+                                    <span class="mt-1 block text-[11px] font-semibold text-slate-400">{{ $stopSell ? 'stop-sell' : $day['booked'].' booked' }}</span>
                                 </td>
                             @endforeach
                         </tr>

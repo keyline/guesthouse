@@ -34,6 +34,7 @@ class Booking extends Model
         'property_id',
         'room_type_id',
         'room_id',
+        'rate_plan_id',
         'user_id',
         'status',
         'source',
@@ -87,6 +88,11 @@ class Booking extends Model
     public function room(): BelongsTo
     {
         return $this->belongsTo(Room::class);
+    }
+
+    public function ratePlan(): BelongsTo
+    {
+        return $this->belongsTo(RatePlan::class);
     }
 
     public function user(): BelongsTo

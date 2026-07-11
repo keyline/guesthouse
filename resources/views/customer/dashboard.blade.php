@@ -58,7 +58,7 @@
                             <tr>
                                 <td class="px-5 py-4 font-black">{{ $booking->booking_number }}</td>
                                 <td class="px-5 py-4 text-slate-600">{{ $booking->property->name }}</td>
-                                <td class="px-5 py-4 text-slate-600">{{ $booking->room->room_number }} / {{ $booking->roomType->name }}</td>
+                                <td class="px-5 py-4 text-slate-600">{{ $booking->room?->room_number ?? 'Assigned at check-in' }} / {{ $booking->roomType->name }}</td>
                                 <td class="px-5 py-4 text-slate-600">{{ $booking->check_in_date->format('M j') }} - {{ $booking->check_out_date->format('M j, Y') }}</td>
                                 <td class="px-5 py-4"><span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-black text-slate-700">{{ str_replace('_', ' ', ucfirst($booking->status)) }}</span></td>
                             </tr>
