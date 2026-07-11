@@ -145,7 +145,7 @@
 
 <aside id="adminSidebar" class="admin-sidebar">
     <div class="admin-sidebar-header flex h-14 items-center justify-between border-b border-white/10 px-3">
-        <a href="{{ route('admin.dashboard') }}" class="flex min-w-0 items-center gap-3 text-white no-underline">
+        <a href="{{ route('admin.dashboard') }}" class="flex min-w-0 items-center gap-3 no-underline" style="color: var(--admin-sidebar-text)">
             <span class="admin-brand-mark">
                 @if ($adminTheme?->logo_path)
                     <img src="{{ asset('storage/'.$adminTheme->logo_path) }}" alt="" class="h-full w-full rounded-[inherit] object-contain p-1">
@@ -168,21 +168,21 @@
 
     <nav class="admin-nav-scroll flex-1 overflow-y-auto px-2 py-2.5">
         @foreach ($navGroups as $group)
-            <div class="mb-3">
-                <p class="admin-nav-group-label px-2 pb-1 text-[8px] font-black uppercase tracking-[0.2em] text-white/40">{{ $group['title'] }}</p>
-                <div class="grid gap-0.5">
+            <div class="admin-nav-section mb-3">
+                <p class="admin-nav-group-label px-2 pb-1 text-[8px] font-black uppercase tracking-[0.2em]" style="color: color-mix(in srgb, var(--admin-sidebar-text) 42%, transparent)">{{ $group['title'] }}</p>
+                <div class="admin-nav-items grid gap-0.5">
                     @foreach ($group['items'] as $item)
                         @if ($item['type'] === 'link')
                             @php $active = request()->routeIs(...$item['patterns']); @endphp
                             <a href="{{ $url($item['route']) }}" class="admin-nav-link {{ $active ? 'is-active' : '' }}" data-tooltip="{{ $item['label'] }}" title="{{ $item['label'] }}">
-                                <span class="admin-nav-icon"><svg fill="currentColor" viewBox="0 0 24 24">{!! $icons[$item['icon']] !!}</svg></span>
+                                <span class="admin-nav-icon" aria-hidden="true"><svg width="18" height="18" fill="#f1f5f9" viewBox="0 0 24 24" style="display:block;min-width:18px">{!! $icons[$item['icon']] !!}</svg></span>
                                 <span class="admin-nav-label">{{ $item['label'] }}</span>
                             </a>
                         @else
                             @php $active = count($item['patterns']) && request()->routeIs(...$item['patterns']); @endphp
-                            <div class="admin-nav-group {{ $active ? 'is-open' : '' }}" data-nav-group="{{ $item['key'] }}">
+                            <div class="admin-nav-group {{ $active ? 'is-open' : '' }}" data-nav-group="{{ $item['key'] }}" data-nav-label="{{ $item['label'] }}">
                                 <button type="button" class="admin-nav-parent {{ $active ? 'is-active' : '' }}" data-tooltip="{{ $item['label'] }}" title="{{ $item['label'] }}" aria-expanded="{{ $active ? 'true' : 'false' }}">
-                                    <span class="admin-nav-icon"><svg fill="currentColor" viewBox="0 0 24 24">{!! $icons[$item['icon']] !!}</svg></span>
+                                    <span class="admin-nav-icon" aria-hidden="true"><svg width="18" height="18" fill="#f1f5f9" viewBox="0 0 24 24" style="display:block;min-width:18px">{!! $icons[$item['icon']] !!}</svg></span>
                                     <span class="admin-nav-label">{{ $item['label'] }}</span>
                                     <span class="admin-dropdown-arrow">
                                         <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 111.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>

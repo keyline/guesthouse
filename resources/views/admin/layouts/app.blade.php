@@ -8,6 +8,7 @@
     $sidebarColor = $safeThemeColor($adminTheme?->admin_sidebar_color, '#53647f');
     $primaryColor = $safeThemeColor($adminTheme?->admin_primary_color, '#2563eb');
     $accentColor = $safeThemeColor($adminTheme?->admin_accent_color, '#7dd3fc');
+    $sidebarTextColor = $safeThemeColor($adminTheme?->admin_sidebar_text_color, '#cbd5e1');
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -35,7 +36,8 @@
             --admin-accent: {{ $accentColor }};
             --admin-sidebar: {{ $sidebarColor }};
             --admin-sidebar-soft: color-mix(in srgb, {{ $sidebarColor }} 88%, #000);
-            --admin-sidebar-text: #cbd5e1;
+            --admin-sidebar-text: {{ $sidebarTextColor }};
+            --admin-sidebar-icon: #f1f5f9;
             --admin-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
@@ -163,7 +165,7 @@
 
         .admin-sidebar-toggle {
             border-color: rgba(148, 163, 184, 0.24);
-            color: #cbd5e1;
+            color: color-mix(in srgb, var(--admin-sidebar-text) 88%, transparent);
             height: 30px;
             width: 30px;
             border-radius: 8px;
@@ -223,7 +225,7 @@
             border: 0;
             border-radius: 7px;
             background: transparent;
-            color: #cbd5e1;
+            color: color-mix(in srgb, var(--admin-sidebar-text) 88%, transparent);
             font-size: 12px;
             font-weight: 650;
             line-height: 1;
@@ -235,13 +237,13 @@
         .admin-nav-parent:hover,
         .admin-nav-link:hover {
             background: rgba(255, 255, 255, 0.08);
-            color: #fff;
+            color: var(--admin-sidebar-text);
         }
 
         .admin-nav-parent.is-active,
         .admin-nav-link.is-active {
             background: color-mix(in srgb, var(--admin-primary) 58%, transparent);
-            color: #fff;
+            color: var(--admin-sidebar-text);
             box-shadow: inset 2px 0 0 var(--admin-accent), 0 4px 10px rgba(15, 23, 42, 0.1);
         }
 
@@ -250,11 +252,23 @@
             width: 18px;
             min-width: 18px;
             place-items: center;
+            color: var(--admin-sidebar-icon);
+            opacity: .9;
+            filter: drop-shadow(0 1px 1px rgba(15, 23, 42, .18));
         }
 
         .admin-nav-icon svg {
             height: 16px;
             width: 16px;
+            display: block;
+        }
+
+        .admin-nav-parent:hover .admin-nav-icon,
+        .admin-nav-link:hover .admin-nav-icon,
+        .admin-nav-parent.is-active .admin-nav-icon,
+        .admin-nav-link.is-active .admin-nav-icon {
+            color: #fff;
+            opacity: 1;
         }
 
         .admin-nav-children {
@@ -278,7 +292,7 @@
             min-height: 25px;
             align-items: center;
             border-radius: 6px;
-            color: rgba(226, 232, 240, .58);
+            color: color-mix(in srgb, var(--admin-sidebar-text) 58%, transparent);
             font-size: 11px;
             font-weight: 600;
             padding: 0 8px;
@@ -288,7 +302,7 @@
         .admin-nav-child:hover,
         .admin-nav-child.is-active {
             background: rgba(255, 255, 255, 0.09);
-            color: #fff;
+            color: var(--admin-sidebar-text);
         }
 
         .admin-nav-child.is-active::before {
@@ -304,6 +318,51 @@
         .admin-shell.is-collapsed .admin-nav-link {
             justify-content: center;
             padding-inline: 0;
+        }
+
+        .admin-shell.is-collapsed .admin-nav-scroll {
+            overflow: visible;
+            padding: 10px 7px;
+        }
+
+        .admin-shell.is-collapsed .admin-nav-section {
+            margin-bottom: 4px;
+        }
+
+        .admin-shell.is-collapsed .admin-nav-group-label {
+            display: none;
+        }
+
+        .admin-shell.is-collapsed .admin-nav-items {
+            grid-template-columns: 44px;
+            gap: 4px;
+        }
+
+        .admin-shell.is-collapsed .admin-nav-parent,
+        .admin-shell.is-collapsed .admin-nav-link {
+            min-height: 38px;
+            border-radius: 9px;
+        }
+
+        .admin-shell.is-collapsed .admin-nav-icon,
+        .admin-shell.is-collapsed .admin-nav-icon svg {
+            height: 18px;
+            width: 18px;
+        }
+
+        .admin-shell.is-collapsed .admin-nav-icon svg {
+            display: block !important;
+            opacity: 1;
+        }
+
+        .admin-shell.is-collapsed .admin-nav-icon {
+            opacity: 1;
+            color: #f1f5f9;
+        }
+
+        .admin-shell.is-collapsed .admin-nav-parent.is-active,
+        .admin-shell.is-collapsed .admin-nav-link.is-active {
+            box-shadow: inset 3px 0 0 var(--admin-accent);
         }
 
         .admin-shell.is-collapsed [data-tooltip] {
@@ -352,7 +411,7 @@
             border-radius: 7px;
             border: 1px solid rgba(148, 163, 184, 0.2);
             background: rgba(255, 255, 255, 0.055);
-            color: #cbd5e1;
+            color: color-mix(in srgb, var(--admin-sidebar-text) 88%, transparent);
             padding: 0 9px;
             font-size: 12px;
             font-weight: 700;
@@ -360,7 +419,7 @@
 
         .admin-sidebar-logout:hover {
             background: rgba(239, 68, 68, 0.16);
-            color: #fff;
+            color: var(--admin-sidebar-text);
         }
 
         .admin-shell.is-collapsed .admin-sidebar-logout {
@@ -458,6 +517,36 @@
 
             .admin-shell.is-collapsed .admin-sidebar {
                 width: var(--admin-sidebar-width);
+            }
+
+            .admin-shell.is-collapsed .admin-nav-scroll {
+                overflow-y: auto;
+                padding: 10px 8px;
+            }
+
+            .admin-shell.is-collapsed .admin-nav-section {
+                width: auto;
+                margin-bottom: 12px;
+            }
+
+            .admin-shell.is-collapsed .admin-nav-group-label {
+                display: block;
+            }
+
+            .admin-shell.is-collapsed .admin-nav-items {
+                grid-template-columns: none;
+                gap: 2px;
+            }
+
+            .admin-shell.is-collapsed .admin-nav-parent,
+            .admin-shell.is-collapsed .admin-nav-link {
+                min-height: 32px;
+                justify-content: flex-start;
+                padding-inline: 9px;
+            }
+
+            .admin-shell.is-collapsed .admin-nav-icon svg {
+                display: block !important;
             }
 
             .admin-shell.is-collapsed .admin-nav-group-label,
@@ -559,6 +648,10 @@
             button?.addEventListener('click', () => {
                 if (adminShell.classList.contains('is-collapsed') && window.innerWidth >= 1024) {
                     setCollapsed(false);
+                    group.classList.add('is-open');
+                    button.setAttribute('aria-expanded', 'true');
+                    localStorage.setItem('adminNavGroup:' + group.dataset.navGroup, 'open');
+                    return;
                 }
 
                 group.classList.toggle('is-open');
