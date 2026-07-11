@@ -127,6 +127,59 @@ class AvailabilityService
     }
 
     /**
+     * Sellable units for the ONLINE channel: overall type availability capped
+     * by the online allotment (rooms flagged is_online_bookable) minus rooms
+     * already sold through the online channel per night.
+     */
+    public function onlineTypeAvailability(int $propertyId, int $roomTypeId, CarbonInterface $checkIn, CarbonInterface $checkOut): int
+    {
+        $onlineAllotment = Room::query()
+            ->where('property_id', $propertyId)
+            ->where('room_type_id', $roomTypeId)
+            ->onlineBookable()
+            ->count();
+
+        if ($onlineAllotment < 1) {
+            return 0;
+        }
+
+        $overall = $this->typeAvailability($propertyId, $roomTypeId, $checkIn, $checkOut);
+
+        if ($overall < 1) {
+            return 0;
+        }
+
+        $checkIn = CarbonImmutable::parse($checkIn)->startOfDay();
+        $checkOut = CarbonImmutable::parse($checkOut)->startOfDay();
+
+        $onlineBookings = Booking::query()
+            ->where('property_id', $propertyId)
+            ->where('room_type_id', $roomTypeId)
+            ->where('source', Booking::SOURCE_ONLINE)
+            ->whereIn('status', Booking::blockingStatuses())
+            ->where('check_in_date', '<', $checkOut->toDateString())
+            ->where('check_out_date', '>', $checkIn->toDateString())
+            ->get(['check_in_date', 'check_out_date']);
+
+        $channelCapacity = PHP_INT_MAX;
+
+        for ($night = $checkIn; $night->lessThan($checkOut); $night = $night->addDay()) {
+            $sold = $onlineBookings->filter(
+                fn (Booking $booking) => $booking->check_in_date->lessThanOrEqualTo($night)
+                    && $booking->check_out_date->greaterThan($night)
+            )->count();
+
+            $channelCapacity = min($channelCapacity, max(0, $onlineAllotment - $sold));
+
+            if ($channelCapacity === 0) {
+                return 0;
+            }
+        }
+
+        return min($overall, $channelCapacity === PHP_INT_MAX ? 0 : $channelCapacity);
+    }
+
+    /**
      * Total stay price in minor units for a rate plan: the daily_rates row per
      * night, falling back to the plan's rack rate when no row exists.
      * Returns null when any night is closed for sale on this plan.

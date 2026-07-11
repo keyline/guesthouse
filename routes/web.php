@@ -22,6 +22,7 @@ use App\Http\Controllers\Auth\AdminSessionController;
 use App\Http\Controllers\Auth\CustomerSessionController;
 use App\Http\Controllers\Auth\RegisteredCustomerController;
 use App\Http\Controllers\Customer\DashboardController as CustomerDashboardController;
+use App\Http\Controllers\Public\BookingEngineController;
 use App\Models\Property;
 use App\Models\User;
 use Illuminate\Support\Facades\Schema;
@@ -69,6 +70,10 @@ Route::get('/', function () {
             : collect(),
     ]);
 });
+
+Route::get('/book', [BookingEngineController::class, 'search'])->name('book.search');
+Route::post('/book', [BookingEngineController::class, 'store'])->middleware('throttle:10,1')->name('book.store');
+Route::get('/book/confirmed/{bookingNumber}', [BookingEngineController::class, 'confirmation'])->name('book.confirmation');
 
 Route::redirect('/login', '/admin/login')->name('login');
 
