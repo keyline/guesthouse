@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Property;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class AdminUserManagementTest extends TestCase
@@ -97,6 +98,62 @@ class AdminUserManagementTest extends TestCase
             'name' => 'Updated Manager',
         ]);
         $this->assertSame([$secondProperty->id], $manager->fresh()->managedProperties()->pluck('properties.id')->all());
+    }
+
+    public function test_admin_can_edit_own_profile_without_changing_access(): void
+    {
+        $firstProperty = $this->property(['name' => 'Assigned Property']);
+        $secondProperty = $this->property(['name' => 'Unassigned Property']);
+        $manager = User::factory()->create([
+            'name' => 'Old Manager',
+            'email' => 'old-manager@example.com',
+            'phone' => '+91 90000 11111',
+            'role' => User::ROLE_PROPERTY_MANAGER,
+            'is_active' => true,
+            'password' => 'OldPassword#123',
+        ]);
+        $manager->managedProperties()->sync([$firstProperty->id]);
+
+        $this->actingAs($manager)
+            ->get(route('admin.profile.edit'))
+            ->assertOk()
+            ->assertSee('Edit Profile')
+            ->assertSee('Access is managed by a super admin and cannot be edited here.');
+
+        $this->actingAs($manager)
+            ->put(route('admin.profile.update'), [
+                'name' => 'Updated Manager',
+                'email' => 'updated-manager@example.com',
+                'phone' => '+91 90000 22222',
+                'password' => 'NewPassword#123',
+                'password_confirmation' => 'NewPassword#123',
+                'role' => User::ROLE_SUPER_ADMIN,
+                'property_ids' => [$secondProperty->id],
+            ])
+            ->assertRedirect(route('admin.profile.edit'))
+            ->assertSessionHas('status', 'Profile updated successfully.');
+
+        $manager->refresh();
+
+        $this->assertSame('Updated Manager', $manager->name);
+        $this->assertSame('updated-manager@example.com', $manager->email);
+        $this->assertSame('+91 90000 22222', $manager->phone);
+        $this->assertSame(User::ROLE_PROPERTY_MANAGER, $manager->role);
+        $this->assertTrue(Hash::check('NewPassword#123', $manager->password));
+        $this->assertSame([$firstProperty->id], $manager->managedProperties()->pluck('properties.id')->all());
+    }
+
+    public function test_topbar_dropdown_contains_profile_and_logout_actions(): void
+    {
+        $superAdmin = $this->adminUser();
+
+        $this->actingAs($superAdmin)
+            ->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertSee(route('admin.profile.edit'), false)
+            ->assertSee(route('admin.logout'), false)
+            ->assertSee('Edit Profile')
+            ->assertSee('Logout');
     }
 
     public function test_super_admin_can_deactivate_admin_user(): void

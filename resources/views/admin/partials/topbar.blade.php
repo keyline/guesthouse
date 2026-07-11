@@ -110,6 +110,16 @@
                     <div class="my-3 border-t border-slate-100"></div>
                     <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Access</p>
                     <p class="mt-1 text-sm font-bold text-slate-800">{{ $roleLabel }} · {{ $scopeLabel }}</p>
+                    <div class="my-3 border-t border-slate-100"></div>
+                    <a href="{{ route('admin.profile.edit') }}" class="flex h-9 items-center rounded-lg px-3 text-sm font-bold text-slate-700 transition hover:bg-sky-50 hover:text-sky-700">
+                        Edit Profile
+                    </a>
+                    <form method="POST" action="{{ route('admin.logout') }}" class="mt-1">
+                        @csrf
+                        <button type="submit" class="flex h-9 w-full items-center rounded-lg px-3 text-left text-sm font-bold text-rose-700 transition hover:bg-rose-50">
+                            Logout
+                        </button>
+                    </form>
                 </div>
             </details>
         </div>

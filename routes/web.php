@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\BookingController;
 use App\Http\Controllers\Admin\GuestController;
 use App\Http\Controllers\Admin\PropertyController;
 use App\Http\Controllers\Admin\PropertyContextController;
+use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\PropertyImageController;
 use App\Http\Controllers\Admin\RoomController;
 use App\Http\Controllers\Admin\RoomImageController;
@@ -84,6 +85,8 @@ Route::prefix('admin')
     ->middleware(['auth', 'role:'.User::ROLE_SUPER_ADMIN.','.User::ROLE_PROPERTY_MANAGER])
     ->group(function () {
         Route::get('/dashboard', DashboardController::class)->name('dashboard');
+        Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+        Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
         Route::post('/property-context', [PropertyContextController::class, 'update'])->name('property-context.update');
         Route::get('/availability', AvailabilityCalendarController::class)->name('availability.index');
         Route::resource('bookings', BookingController::class);
