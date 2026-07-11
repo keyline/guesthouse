@@ -54,7 +54,10 @@ class OnlineInventoryController extends Controller
             ->groupBy(fn (Room $room) => $room->roomType?->name ?? 'Unassigned Type')
             ->sortKeys()
             ->map(fn ($groupRooms) => [
-                'rooms' => $groupRooms->values(),
+                'floors' => $groupRooms
+                    ->groupBy(fn (Room $room) => $room->floor ?: 'No floor')
+                    ->sortKeysUsing('strnatcasecmp')
+                    ->map(fn ($floorRooms) => $floorRooms->sortBy('room_number', SORT_NATURAL)->values()),
                 'total' => $groupRooms->count(),
                 'online' => $groupRooms
                     ->filter(fn (Room $room) => $room->is_online_bookable && $room->status === Room::STATUS_AVAILABLE)
