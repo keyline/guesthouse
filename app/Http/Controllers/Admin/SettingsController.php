@@ -110,6 +110,10 @@ class SettingsController extends Controller
                 Rule::excludeIf(! $request->user()->hasRole(\App\Models\User::ROLE_SUPER_ADMIN)),
                 'nullable', 'regex:/^#[0-9A-Fa-f]{6}$/',
             ],
+            'admin_sidebar_text_color' => [
+                Rule::excludeIf(! $request->user()->hasRole(\App\Models\User::ROLE_SUPER_ADMIN)),
+                'nullable', 'regex:/^#[0-9A-Fa-f]{6}$/',
+            ],
         ]);
 
         $settings = Setting::first() ?? new Setting();

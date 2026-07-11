@@ -412,11 +412,12 @@
                             <p class="mt-1 text-xs text-slate-500">These colors apply to the admin navigation for every user.</p>
                         </div>
                         <div class="grid gap-5 p-5 lg:grid-cols-[1fr_260px]">
-                            <div class="grid gap-4 sm:grid-cols-3">
+                            <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                                 @foreach ([
                                     ['admin_sidebar_color', 'Sidebar', '#53647f'],
                                     ['admin_primary_color', 'Active item', '#2563eb'],
                                     ['admin_accent_color', 'Accent', '#7dd3fc'],
+                                    ['admin_sidebar_text_color', 'Font color', '#cbd5e1'],
                                 ] as [$field, $label, $default])
                                     @php $colorValue = old($field, $settings->{$field} ?: $default); @endphp
                                     <label class="block">
@@ -428,7 +429,7 @@
                                         @error($field)<span class="mt-1 block text-xs text-red-600">{{ $message }}</span>@enderror
                                     </label>
                                 @endforeach
-                                <div class="sm:col-span-3">
+                                <div class="sm:col-span-2 xl:col-span-4">
                                     <button type="button" id="resetAdminTheme" class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50">Restore default palette</button>
                                 </div>
                             </div>
@@ -438,10 +439,10 @@
                                         <span class="theme-preview-mark grid h-8 w-8 place-items-center rounded-lg text-xs font-black">{{ mb_strtoupper(mb_substr($settings->site_name ?: 'P', 0, 1)) }}</span>
                                         <span class="text-xs font-black">{{ $settings->site_name ?: 'Property Manager' }}</span>
                                     </div>
-                                    <p class="mb-2 text-[9px] font-black uppercase tracking-widest text-white/50">Operations</p>
+                                    <p class="theme-preview-muted mb-2 text-[9px] font-black uppercase tracking-widest opacity-50">Operations</p>
                                     <div class="theme-preview-active flex h-9 items-center rounded-lg px-3 text-xs font-bold">Reservations</div>
-                                    <div class="mt-1 flex h-9 items-center px-3 text-xs font-semibold text-white/70">Guests</div>
-                                    <div class="mt-1 flex h-9 items-center px-3 text-xs font-semibold text-white/70">Housekeeping</div>
+                                    <div class="theme-preview-muted mt-1 flex h-9 items-center px-3 text-xs font-semibold opacity-70">Guests</div>
+                                    <div class="theme-preview-muted mt-1 flex h-9 items-center px-3 text-xs font-semibold opacity-70">Housekeeping</div>
                                 </div>
                             </div>
                         </div>
@@ -505,6 +506,7 @@
             admin_sidebar_color: '#53647f',
             admin_primary_color: '#2563eb',
             admin_accent_color: '#7dd3fc',
+            admin_sidebar_text_color: '#cbd5e1',
         };
 
         function refreshThemePreview() {
@@ -514,9 +516,11 @@
             const mark = document.querySelector('.theme-preview-mark');
             if (!preview) return;
             preview.style.background = values.admin_sidebar_color;
+            preview.style.color = values.admin_sidebar_text_color;
             active.style.background = values.admin_primary_color;
             active.style.boxShadow = `inset 3px 0 0 ${values.admin_accent_color}`;
             mark.style.background = `linear-gradient(135deg, ${values.admin_accent_color}, ${values.admin_primary_color})`;
+            preview.querySelectorAll('.theme-preview-muted').forEach(el => el.style.color = values.admin_sidebar_text_color);
             document.querySelectorAll('[data-theme-color]').forEach(input => input.closest('label').querySelector('.theme-color-value').textContent = input.value);
         }
 

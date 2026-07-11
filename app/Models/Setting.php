@@ -64,6 +64,7 @@ class Setting extends Model
         'admin_sidebar_color',
         'admin_primary_color',
         'admin_accent_color',
+        'admin_sidebar_text_color',
     ];
 
     protected $casts = [
