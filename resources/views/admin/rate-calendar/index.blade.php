@@ -35,7 +35,8 @@
     @elseif ($ratePlans->isEmpty())
         <section class="mt-4 rounded-lg border border-slate-200 bg-white p-8 text-center shadow-sm">
             <p class="text-sm font-bold text-slate-700">No rate plans exist for {{ $property->name }} yet.</p>
-            <p class="mt-1 text-xs font-semibold text-slate-500">Run <code class="rounded bg-slate-100 px-1.5 py-0.5">php artisan rates:backfill</code> to seed a Standard Rate for every room type, then refine prices here.</p>
+            <p class="mt-1 text-xs font-semibold text-slate-500">Create a Standard Rate for its room types first — then refine per-night prices here.</p>
+            <a href="{{ route('admin.rate-plans.index', ['property_id' => $property->id]) }}" class="mt-4 inline-flex h-10 items-center rounded-lg bg-sky-600 px-5 text-sm font-black text-white transition hover:bg-sky-700">Set up pricing</a>
         </section>
     @else
         <form method="POST" action="{{ route('admin.rate-calendar.update') }}">
