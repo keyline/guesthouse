@@ -360,6 +360,15 @@
             color: #f1f5f9;
         }
 
+        /* Labels must leave the layout entirely when collapsed — opacity
+           alone keeps their width and pushes the centered icon off-canvas. */
+        .admin-shell.is-collapsed .admin-nav-label,
+        .admin-shell.is-collapsed .admin-dropdown-arrow,
+        .admin-shell.is-collapsed .admin-sidebar-logout-text,
+        .admin-shell.is-collapsed .admin-brand-text {
+            display: none;
+        }
+
         .admin-shell.is-collapsed .admin-nav-parent.is-active,
         .admin-shell.is-collapsed .admin-nav-link.is-active {
             box-shadow: inset 3px 0 0 var(--admin-accent);
@@ -558,6 +567,7 @@
             .admin-shell.is-collapsed .admin-dropdown-arrow {
                 pointer-events: auto;
                 opacity: 1;
+                display: initial;
             }
 
             .admin-shell.is-collapsed .admin-sidebar-logout {
