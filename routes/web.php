@@ -91,6 +91,7 @@ Route::prefix('admin')
         Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
         Route::post('/property-context', [PropertyContextController::class, 'update'])->name('property-context.update');
         Route::get('/availability', AvailabilityCalendarController::class)->name('availability.index');
+        Route::post('/bookings/{booking}/assign-room', [BookingController::class, 'assignRoom'])->name('bookings.assign-room');
         Route::resource('bookings', BookingController::class);
         Route::resource('guests', GuestController::class);
         Route::post('/properties/{property}/toggle-status', [PropertyController::class, 'toggleStatus'])

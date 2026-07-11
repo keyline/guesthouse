@@ -10,6 +10,7 @@ use App\Models\RatePlan;
 use App\Models\Room;
 use App\Models\RoomType;
 use App\Models\User;
+use App\Services\Booking\AvailabilityService;
 use App\Services\Booking\InventoryService;
 use App\Support\AdminNavigation;
 use App\Support\AdminPropertyScope;
@@ -83,15 +84,49 @@ class BookingController extends Controller
             ->with('status', 'Booking created successfully.');
     }
 
-    public function show(Booking $booking, AdminPropertyScope $scope): View
+    public function show(Booking $booking, AdminPropertyScope $scope, AvailabilityService $availability): View
     {
         abort_unless($scope->canAccessProperty($booking->property_id), 404);
         $booking->load(['property', 'roomType', 'room']);
 
+        $assignableRooms = $booking->room_id
+            ? collect()
+            : $availability->availableRooms(
+                $booking->property_id,
+                $booking->room_type_id,
+                $booking->check_in_date,
+                $booking->check_out_date,
+                $booking->id,
+            );
+
         return view('admin.bookings.show', [
             'booking' => $booking,
+            'assignableRooms' => $assignableRooms,
             'navItems' => AdminNavigation::make('bookings'),
         ]);
+    }
+
+    public function assignRoom(Request $request, Booking $booking, AdminPropertyScope $scope, AvailabilityService $availability): RedirectResponse
+    {
+        abort_unless($scope->canAccessProperty($booking->property_id), 404);
+
+        $validated = $request->validate([
+            'room_id' => ['required', 'integer'],
+        ]);
+
+        $room = Room::query()
+            ->where('id', $validated['room_id'])
+            ->where('property_id', $booking->property_id)
+            ->where('room_type_id', $booking->room_type_id)
+            ->first();
+
+        if (! $room || ! $availability->roomIsAvailable($room, $booking->check_in_date, $booking->check_out_date, $booking->id)) {
+            return back()->withErrors(['room_id' => 'That room is not available for this stay.']);
+        }
+
+        $booking->update(['room_id' => $room->id]);
+
+        return back()->with('status', "Room {$room->room_number} assigned to {$booking->booking_number}.");
     }
 
     public function edit(Booking $booking, AdminPropertyScope $scope): View

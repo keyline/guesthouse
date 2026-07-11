@@ -47,6 +47,27 @@
         </article>
 
         <aside class="space-y-6">
+            @if (! $booking->room_id && ! in_array($booking->status, ['cancelled', 'checked_out'], true))
+                <section class="rounded-lg border border-sky-200 bg-sky-50 p-5 shadow-sm">
+                    <h2 class="text-lg font-black text-sky-950">Assign Room</h2>
+                    <p class="mt-1 text-xs font-semibold text-sky-800">Pick the physical room at check-in. Only rooms free for the whole stay are listed.</p>
+                    @if ($assignableRooms->isEmpty())
+                        <p class="mt-3 rounded-lg bg-white px-3 py-2 text-sm font-bold text-rose-700">No free {{ $booking->roomType->name }} rooms for these dates.</p>
+                    @else
+                        <form method="POST" action="{{ route('admin.bookings.assign-room', $booking) }}" class="mt-3 flex gap-2">
+                            @csrf
+                            <select name="room_id" required class="h-10 flex-1 rounded-lg border border-slate-300 bg-white px-3 text-sm font-bold">
+                                @foreach ($assignableRooms as $room)
+                                    <option value="{{ $room->id }}">Room {{ $room->room_number }}{{ $room->floor ? ' · '.$room->floor : '' }}</option>
+                                @endforeach
+                            </select>
+                            <button class="h-10 rounded-lg bg-sky-600 px-4 text-sm font-black text-white hover:bg-sky-700">Assign</button>
+                        </form>
+                        @error('room_id')<p class="mt-2 text-sm font-semibold text-rose-700">{{ $message }}</p>@enderror
+                    @endif
+                </section>
+            @endif
+
             <section class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
                 <h2 class="text-lg font-black">Requests</h2>
                 <p class="mt-3 whitespace-pre-line text-sm leading-6 text-slate-600">{{ $booking->special_requests ?: 'No special requests.' }}</p>
