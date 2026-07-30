@@ -1,0 +1,17 @@
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -Indexes
+    </IfModule>
+
+    DirectoryIndex index.php
+    RewriteEngine On
+
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    RewriteRule ^public/(.*)$ public/$1 [L,NC]
+    RewriteRule ^((?:landing|build|storage)/.*)$ public/$1 [L,NC]
+    RewriteRule ^(favicon\.ico|robots\.txt)$ public/$1 [L,NC]
+
+    RewriteRule ^index\.php$ - [L]
+    RewriteRule ^.*$ index.php [L]
+</IfModule>

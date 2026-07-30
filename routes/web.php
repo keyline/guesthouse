@@ -210,4 +210,6 @@ Route::prefix('account')
         Route::post('/logout', [CustomerSessionController::class, 'destroy'])->name('logout');
 });
 
-Route::redirect('/dashboard', '/admin/dashboard');
+Route::get('/dashboard', function () {
+    return redirect()->route('admin.dashboard');
+});
