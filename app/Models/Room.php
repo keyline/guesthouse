@@ -42,6 +42,26 @@ class Room extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::saved(fn (Room $room) => PropertyRoomType::query()->firstOrCreate(
+            ['property_id' => $room->property_id, 'room_type_id' => $room->room_type_id],
+            self::configurationDefaults($room->roomType()->first())
+        ));
+    }
+
+    private static function configurationDefaults(?RoomType $type): array
+    {
+        return [
+            'max_adults' => $type?->max_adults ?? 2, 'max_children' => $type?->max_children ?? 0,
+            'is_pet_friendly' => $type?->is_pet_friendly ?? false,
+            'extra_bed_available' => $type?->extra_bed_available ?? false,
+            'max_extra_beds' => $type?->max_extra_beds ?? 0,
+            'extra_bed_charge_minor' => $type?->extra_bed_charge_minor ?? 0,
+            'extra_bed_charge_basis' => $type?->extra_bed_charge_basis ?? 'per_night',
+        ];
+    }
+
     public function scopeOnlineBookable(Builder $query): Builder
     {
         return $query
@@ -67,5 +87,15 @@ class Room extends Model
     public function images(): HasMany
     {
         return $this->hasMany(RoomImage::class);
+    }
+
+    public function amenityOverrides(): HasMany
+    {
+        return $this->hasMany(RoomAmenityOverride::class);
+    }
+
+    public function operationalIssues(): HasMany
+    {
+        return $this->hasMany(RoomOperationalIssue::class);
     }
 }

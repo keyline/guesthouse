@@ -61,7 +61,11 @@ class AdminActivityLog extends Model
             'subject_type' => class_basename($subject),
             'subject_id' => $subject->getKey(),
             'subject_label' => static::labelFor($subject),
+            // Models without their own property_id column (guest documents,
+            // staying guests, …) resolve it via auditPropertyId() so their
+            // rows stay visible to property-scoped admins.
             'property_id' => $subject->getAttribute('property_id')
+                ?? (method_exists($subject, 'auditPropertyId') ? $subject->auditPropertyId() : null)
                 ?? ($subject instanceof Property ? $subject->id : null),
             'old_values' => $old,
             'new_values' => $new,
@@ -73,6 +77,10 @@ class AdminActivityLog extends Model
 
     private static function labelFor(Model $subject): ?string
     {
+        if (method_exists($subject, 'auditLabel')) {
+            return $subject->auditLabel();
+        }
+
         foreach (['name', 'booking_number', 'room_number', 'code', 'email'] as $attribute) {
             $value = $subject->getAttribute($attribute);
 

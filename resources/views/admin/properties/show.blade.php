@@ -6,6 +6,7 @@
 
 @section('header-actions')
     <a href="{{ route('admin.properties.index') }}" class="inline-flex h-10 items-center rounded-lg border border-slate-300 px-4 text-sm font-bold text-slate-700">All Properties</a>
+    <a href="{{ route('admin.properties.rules.edit', $property) }}" class="inline-flex h-10 items-center rounded-lg border border-indigo-300 bg-indigo-50 px-4 text-sm font-bold text-indigo-800">Property Rules</a>
     <a href="{{ route('admin.properties.edit', $property) }}" class="inline-flex h-10 items-center rounded-lg bg-sky-600 px-4 py-2 text-sm font-bold text-white hover:bg-sky-700 transition shadow-sm">Edit</a>
 @endsection
 

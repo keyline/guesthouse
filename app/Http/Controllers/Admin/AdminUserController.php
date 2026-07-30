@@ -104,7 +104,7 @@ class AdminUserController extends Controller
         });
 
         return redirect()
-            ->route('admin.admin-users.show', $adminUser)
+            ->route('admin.admin-users.index')
             ->with('status', 'Admin user updated successfully.');
     }
 

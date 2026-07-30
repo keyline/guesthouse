@@ -10,6 +10,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Str;
 
 class AmenityController extends Controller
 {
@@ -102,14 +103,27 @@ class AmenityController extends Controller
             'name' => ['required', 'string', 'max:120', Rule::unique('amenities', 'name')->ignore($amenity)],
             'icon' => ['required', Rule::in(array_keys($this->iconOptions()))],
             'category' => ['required', Rule::in(array_keys($this->categories()))],
+            'scope' => ['required', Rule::in([\App\Models\Amenity::SCOPE_PROPERTY, \App\Models\Amenity::SCOPE_ROOM_CATEGORY])],
+            'supports_fee' => ['nullable', 'boolean'],
+            'is_guest_visible' => ['nullable', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:65535'],
             'is_active' => ['nullable', 'boolean'],
         ]);
 
         $validated['is_active'] = $request->boolean('is_active');
+        $validated['supports_fee'] = $request->boolean('supports_fee');
+        $validated['is_guest_visible'] = $request->boolean('is_guest_visible');
+        $validated['code'] = $amenity?->code ?: $this->uniqueCode($validated['name']);
         $validated['sort_order'] = $validated['sort_order'] ?? 0;
 
         return $validated;
+    }
+
+    private function uniqueCode(string $name): string
+    {
+        $base = Str::slug($name) ?: 'amenity'; $code = $base; $number = 2;
+        while (Amenity::query()->where('code', $code)->exists()) $code = $base.'-'.$number++;
+        return $code;
     }
 
     /**

@@ -8,6 +8,7 @@ use App\Models\Property;
 use App\Models\Room;
 use App\Support\AdminNavigation;
 use App\Support\AdminPropertyScope;
+use App\Support\StayReadiness;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -47,6 +48,8 @@ class DashboardController extends Controller
             ->whereDate('check_out_date', $date->toDateString())
             ->count();
 
+        $frontDesk = $this->frontDeskLists($scope, $date);
+
         $onlineSold = $stayingTonight->where('source', Booking::SOURCE_ONLINE)->count();
 
         $sellableCount = $sellableRooms->count();
@@ -71,7 +74,7 @@ class DashboardController extends Controller
                 'sellable' => $sellableCount,
                 'arrivals' => $arrivals->count(),
                 'departures' => $departures,
-                'inHouse' => $stayingTonight->count(),
+                'inHouse' => $frontDesk['inHouse']->count(),
                 'onlineSold' => $onlineSold,
                 'onlineAllotment' => $onlineRooms->count(),
                 'breakfasts' => $breakfastsTomorrow,
@@ -80,6 +83,7 @@ class DashboardController extends Controller
                 ? $this->roomGrid($rooms, $bookedRoomIds, $onlineBookedRoomIds)
                 : collect(),
             'portfolio' => $selectedProperty ? collect() : $this->portfolio($scope, $date),
+            'frontDesk' => $frontDesk,
             'occupancyStrip' => $this->occupancyStrip($scope, $date, $sellableCount),
             'recentBookings' => $scope->apply(Booking::query())
                 ->with('property')
@@ -99,6 +103,47 @@ class DashboardController extends Controller
         }
 
         return CarbonImmutable::today();
+    }
+
+    /**
+     * The three operational guest lists for the front desk: today's arrivals
+     * (not yet checked in), today's departures (checked-in, due out) and the
+     * guests currently in-house.
+     *
+     * @return array{arrivals: Collection<int, Booking>, departures: Collection<int, Booking>, inHouse: Collection<int, Booking>, arrivalReady: array<int, bool>}
+     */
+    private function frontDeskLists(AdminPropertyScope $scope, CarbonImmutable $date): array
+    {
+        $arrivals = $scope->apply(Booking::query())
+            ->with(['room', 'roomType', 'guests.documents'])
+            ->whereIn('status', [Booking::STATUS_PENDING, Booking::STATUS_CONFIRMED])
+            ->whereDate('check_in_date', $date->toDateString())
+            ->orderBy('guest_name')
+            ->get();
+
+        $departures = $scope->apply(Booking::query())
+            ->with(['room', 'roomType'])
+            ->where('status', Booking::STATUS_CHECKED_IN)
+            ->whereDate('check_out_date', $date->toDateString())
+            ->orderBy('guest_name')
+            ->get();
+
+        $inHouse = $scope->apply(Booking::query())
+            ->with(['room', 'roomType'])
+            ->where('status', Booking::STATUS_CHECKED_IN)
+            ->whereDate('check_in_date', '<=', $date->toDateString())
+            ->whereDate('check_out_date', '>', $date->toDateString())
+            ->orderBy('check_out_date')
+            ->get();
+
+        return [
+            'arrivals' => $arrivals,
+            'departures' => $departures,
+            'inHouse' => $inHouse,
+            'arrivalReady' => $arrivals
+                ->mapWithKeys(fn (Booking $booking) => [$booking->id => StayReadiness::for($booking)['ready']])
+                ->all(),
+        ];
     }
 
     /**

@@ -19,11 +19,14 @@
                     'type' => 'group',
                     'label' => 'Bookings',
                     'key' => 'bookings',
-                    'patterns' => ['admin.bookings.*', 'admin.availability.*'],
+                    'patterns' => ['admin.bookings.*', 'admin.availability.*', 'admin.reservation-board-preview', 'admin.guests.*', 'admin.corporates.*'],
                     'icon' => 'booking',
                     'children' => [
                         ['label' => 'Reservations', 'route' => 'admin.bookings.index', 'patterns' => ['admin.bookings.*']],
+                        ['label' => 'Reservation Board', 'route' => 'admin.reservation-board-preview', 'patterns' => ['admin.reservation-board-preview']],
                         ['label' => 'Check-in / Check-out', 'route' => 'admin.availability.index', 'patterns' => ['admin.availability.*']],
+                        ['label' => 'Guests', 'route' => 'admin.guests.index', 'patterns' => ['admin.guests.*']],
+                        ['label' => 'Companies', 'route' => 'admin.corporates.index', 'patterns' => ['admin.corporates.*']],
                         ['label' => 'Payments', 'route' => null, 'patterns' => []],
                         ['label' => 'Cancellations', 'route' => null, 'patterns' => []],
                         ['label' => 'Booking Inquiries', 'route' => null, 'patterns' => []],
@@ -33,7 +36,7 @@
                     'type' => 'group',
                     'label' => 'Inventory',
                     'key' => 'inventory',
-                    'patterns' => ['admin.properties.*', 'admin.rooms.*', 'admin.online-inventory.*', 'admin.rate-plans.*', 'admin.rate-calendar.*', 'admin.room-types.*', 'admin.availability.*', 'admin.amenities.*', 'admin.banquets.*'],
+                    'patterns' => ['admin.properties.*', 'admin.rooms.*', 'admin.online-inventory.*', 'admin.rate-plans.*', 'admin.rate-calendar.*', 'admin.room-types.*', 'admin.availability.*', 'admin.amenities.*', 'admin.banquets.*', 'admin.cancellation-policies.*'],
                     'icon' => 'property',
                     'children' => [
                         ['label' => 'Properties', 'route' => 'admin.properties.index', 'patterns' => ['admin.properties.*']],
@@ -45,7 +48,7 @@
                         ['label' => 'Rate Calendar', 'route' => 'admin.rate-calendar.index', 'patterns' => ['admin.rate-calendar.*']],
                         ['label' => 'Rates & Availability', 'route' => 'admin.availability.index', 'patterns' => ['admin.availability.*']],
                         ['label' => 'Amenities', 'route' => 'admin.amenities.index', 'patterns' => ['admin.amenities.*']],
-                        ['label' => 'Policies', 'route' => null, 'patterns' => []],
+                        ['label' => 'Cancellation Policies', 'route' => 'admin.cancellation-policies.index', 'patterns' => ['admin.cancellation-policies.*']],
                     ],
                 ],
             ],
@@ -55,12 +58,11 @@
             'items' => [
                 [
                     'type' => 'group',
-                    'label' => 'Guests & Users',
+                    'label' => 'Users',
                     'key' => 'users',
-                    'patterns' => ['admin.guests.*', 'admin.admin-users.*'],
+                    'patterns' => ['admin.admin-users.*'],
                     'icon' => 'users',
                     'children' => [
-                        ['label' => 'Guests', 'route' => 'admin.guests.index', 'patterns' => ['admin.guests.*']],
                         ['label' => 'Users', 'route' => $canManageAdmins ? 'admin.admin-users.index' : null, 'patterns' => ['admin.admin-users.*']],
                         ['label' => 'Roles & Permissions', 'route' => null, 'patterns' => []],
                     ],
@@ -74,22 +76,22 @@
                     'type' => 'group',
                     'label' => 'Marketing',
                     'key' => 'marketing',
-                    'patterns' => [],
+                    'patterns' => ['admin.discounts.*', 'admin.banquet-leads.*'],
                     'icon' => 'campaign',
                     'children' => [
-                        ['label' => 'Offers & Promotions', 'route' => null, 'patterns' => []],
-                        ['label' => 'Coupons', 'route' => null, 'patterns' => []],
+                        ['label' => 'Offers & Coupons', 'route' => 'admin.discounts.index', 'patterns' => ['admin.discounts.*']],
+                        ['label' => 'Banquet Leads', 'route' => 'admin.banquet-leads.index', 'patterns' => ['admin.banquet-leads.*']],
                         ['label' => 'Banners', 'route' => null, 'patterns' => []],
                     ],
                 ],
                 [
                     'type' => 'group',
-                    'label' => 'Reports & Analytics',
+                    'label' => 'Reports',
                     'key' => 'reports',
-                    'patterns' => [],
+                    'patterns' => ['admin.reports.*'],
                     'icon' => 'chart',
                     'children' => [
-                        ['label' => 'Reports', 'route' => null, 'patterns' => []],
+                        ['label' => 'Booking & Payments', 'route' => $canManageAdmins ? 'admin.reports.index' : null, 'patterns' => ['admin.reports.*']],
                         ['label' => 'Analytics', 'route' => null, 'patterns' => []],
                     ],
                 ],
@@ -147,8 +149,8 @@
     <div class="admin-sidebar-header flex h-14 items-center justify-between border-b border-white/10 px-3">
         <a href="{{ route('admin.dashboard') }}" class="flex min-w-0 items-center gap-3 no-underline" style="color: var(--admin-sidebar-text)">
             <span class="admin-brand-mark">
-                @if ($adminTheme?->logo_path)
-                    <img src="{{ asset('storage/'.$adminTheme->logo_path) }}" alt="" class="h-full w-full rounded-[inherit] object-contain p-1">
+                @if ($adminTheme?->icon_path || $adminTheme?->logo_path)
+                    <img src="{{ asset('storage/'.($adminTheme->icon_path ?: $adminTheme->logo_path)) }}" alt="" class="h-full w-full rounded-[inherit] object-contain p-1">
                 @else
                     {{ $brandInitial }}
                 @endif

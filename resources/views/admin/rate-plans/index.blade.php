@@ -12,23 +12,21 @@
         <div class="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-800">{{ $errors->first() }}</div>
     @endif
 
-    <section class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <form method="GET" action="{{ route('admin.rate-plans.index') }}" class="flex flex-wrap items-end gap-3">
-            <div>
-                <label for="property_id" class="text-xs font-black uppercase tracking-wide text-slate-500">Property</label>
-                <select id="property_id" name="property_id" onchange="this.form.submit()" class="mt-1 h-10 w-64 rounded-lg border border-slate-300 bg-white px-3 text-sm font-bold">
-                    @foreach ($properties as $option)
-                        <option value="{{ $option->id }}" @selected($property && $property->id === $option->id)>{{ $option->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <p class="pb-2 text-xs font-semibold text-slate-500">Prices here are the everyday (rack) rate per night. Seasonal overrides live in the <a href="{{ route('admin.rate-calendar.index', ['property_id' => $property?->id]) }}" class="font-black text-sky-700">Rate Calendar</a>.</p>
-        </form>
+    <section class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm">
+        <div class="min-w-0">
+            @if ($property)
+                <p class="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">Pricing property</p>
+                <p class="truncate text-sm font-black text-slate-900">{{ $property->name }}</p>
+            @else
+                <p class="text-sm font-black text-amber-800">Select one property from the top banner</p>
+            @endif
+        </div>
+        <p class="text-xs font-semibold text-slate-500">Everyday rates are managed here. Seasonal overrides live in the <a href="{{ route('admin.rate-calendar.index', ['property_id' => $property?->id]) }}" class="font-black text-sky-700">Rate Calendar</a>; refund rules live in <a href="{{ route('admin.cancellation-policies.index') }}" class="font-black text-sky-700">Cancellation Policies</a>.</p>
     </section>
 
     @if (! $property)
         <section class="mt-4 rounded-lg border border-slate-200 bg-white p-8 text-center shadow-sm">
-            <p class="text-sm font-bold text-slate-700">No property available.</p>
+            <p class="text-sm font-bold text-slate-700">Choose a property using the selector in the top banner to view and manage its room pricing.</p>
         </section>
     @else
         @forelse ($roomTypes as $roomType)
@@ -53,16 +51,21 @@
                                 <p class="truncate text-sm font-black text-slate-900">{{ $plan->name }}</p>
                                 <p class="text-[11px] font-semibold text-slate-500">{{ $mealPlans[$plan->meal_plan] ?? strtoupper($plan->meal_plan) }}</p>
                             </div>
-                            <form method="POST" action="{{ route('admin.rate-plans.update', $plan) }}" class="flex items-center gap-2">
+                            <form method="POST" action="{{ route('admin.rate-plans.update', $plan) }}" class="flex flex-wrap items-center gap-2">
                                 @csrf
                                 @method('PUT')
                                 <span class="text-sm font-black text-slate-500">₹</span>
                                 <input type="number" name="price" step="0.01" min="0"
                                        value="{{ number_format($plan->default_price_minor / 100, 2, '.', '') }}"
                                        class="h-9 w-28 rounded-lg border border-slate-300 px-2 text-right text-sm font-black">
+                                <span class="text-[11px] font-semibold text-slate-400">per night ·</span>
+                                <select name="cancellation_policy_id" title="Cancellation policy for new bookings on this plan" class="h-9 rounded-lg border border-slate-300 bg-white px-2 text-xs font-bold">
+                                    @foreach ($cancellationPolicies as $policy)
+                                        <option value="{{ $policy->id }}" @selected($plan->cancellation_policy_id === $policy->id)>{{ $policy->name }}</option>
+                                    @endforeach
+                                </select>
                                 <button class="h-9 rounded-lg border border-sky-600 bg-sky-600 px-3 text-xs font-black text-white transition hover:bg-sky-700">Save</button>
                             </form>
-                            <span class="text-[11px] font-semibold text-slate-400">per night</span>
                             <form method="POST" action="{{ route('admin.rate-plans.toggle', $plan) }}" class="ml-auto">
                                 @csrf
                                 <button class="rounded-lg border px-3 py-1.5 text-[11px] font-bold transition {{ $plan->status === \App\Models\RatePlan::STATUS_ACTIVE ? 'border-slate-300 text-slate-600 hover:bg-slate-50' : 'border-emerald-300 text-emerald-700 hover:bg-emerald-50' }}">
@@ -75,7 +78,6 @@
                     <div class="bg-slate-50/60 px-4 py-2.5">
                         <form method="POST" action="{{ route('admin.rate-plans.store') }}" class="flex flex-wrap items-center gap-2">
                             @csrf
-                            <input type="hidden" name="property_id" value="{{ $property->id }}">
                             <input type="hidden" name="room_type_id" value="{{ $roomType->id }}">
                             <span class="text-xs font-black uppercase tracking-wide text-slate-500">+ Add plan</span>
                             <select name="meal_plan" class="h-9 rounded-lg border border-slate-300 bg-white px-2 text-xs font-bold">

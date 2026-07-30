@@ -29,28 +29,14 @@ class BookingRequest extends FormRequest
     {
         return [
             'property_id' => ['required', 'integer', Rule::exists(Property::class, 'id')],
-            'room_type_id' => [
-                'required',
-                'integer',
-                Rule::exists(RoomType::class, 'id'),
-            ],
-            'room_id' => [
-                'nullable',
-                'integer',
+            'room_ids' => ['required', 'array', 'min:1', 'max:10'],
+            'room_ids.*' => [
+                'integer', 'distinct',
                 Rule::exists(Room::class, 'id')
-                    ->where('property_id', $this->integer('property_id'))
-                    ->where('room_type_id', $this->integer('room_type_id')),
-            ],
-            'rate_plan_id' => [
-                'nullable',
-                'integer',
-                Rule::exists(RatePlan::class, 'id')
-                    ->where('property_id', $this->integer('property_id'))
-                    ->where('room_type_id', $this->integer('room_type_id'))
-                    ->where('status', RatePlan::STATUS_ACTIVE),
+                    ->where('property_id', $this->integer('property_id')),
             ],
             'user_id' => ['nullable', 'integer', Rule::exists(User::class, 'id')->where('role', User::ROLE_CUSTOMER)],
-            'status' => ['required', Rule::in(array_keys($this->statuses()))],
+            'status' => ['required', Rule::in(array_keys(self::statusOptionsFor($this->route('booking'))))],
             'source' => ['required', Rule::in(array_keys($this->sources()))],
             'guest_name' => ['required', 'string', 'max:255'],
             'guest_email' => ['nullable', 'email', 'max:255'],
@@ -59,10 +45,21 @@ class BookingRequest extends FormRequest
             'check_out_date' => ['required', 'date', 'after:check_in_date'],
             'adults' => ['required', 'integer', 'min:1', 'max:20'],
             'children' => ['required', 'integer', 'min:0', 'max:20'],
-            'total_amount' => ['nullable', 'required_without:rate_plan_id', 'numeric', 'min:0', 'max:99999999'],
+            'total_amount' => ['nullable', 'numeric', 'min:0', 'max:99999999'],
+            'corporate_id' => ['nullable', 'integer', Rule::exists(\App\Models\Corporate::class, 'id')->where('is_active', true)],
+            'billing' => ['nullable', Rule::in([Booking::BILLING_GUEST, Booking::BILLING_CORPORATE])],
+            'payment_status' => ['nullable', Rule::in([Booking::PAYMENT_UNPAID, Booking::PAYMENT_PAID])],
             'currency' => ['required', 'string', 'size:3'],
             'special_requests' => ['nullable', 'string', 'max:3000'],
             'internal_notes' => ['nullable', 'string', 'max:3000'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'room_ids.required' => 'Select at least one room from the board.',
+            'room_ids.min' => 'Select at least one room from the board.',
         ];
     }
 
@@ -80,47 +77,61 @@ class BookingRequest extends FormRequest
                     return;
                 }
 
+                if ($this->input('billing') === Booking::BILLING_CORPORATE && ! $this->filled('corporate_id')) {
+                    $validator->errors()->add('billing', 'Pick the company to bill this stay to.');
+
+                    return;
+                }
+
                 $booking = $this->route('booking');
                 $checkIn = CarbonImmutable::parse($this->input('check_in_date'));
                 $checkOut = CarbonImmutable::parse($this->input('check_out_date'));
                 $isBlocking = in_array($this->input('status'), Booking::blockingStatuses(), true);
                 $availability = app(AvailabilityService::class);
+                $requestedRoomIds = collect($this->input('room_ids', []))->filter()->map(fn ($id) => (int) $id)->unique();
+                $rooms = Room::query()->whereKey($requestedRoomIds)
+                    ->whereHas('roomType', fn ($query) => $query->where('status', RoomType::STATUS_ACTIVE))->get();
 
-                if ($room = Room::query()->find($this->integer('room_id'))) {
-                    $roomIsFree = $availability->roomIsAvailable($room, $checkIn, $checkOut, $booking?->id);
-
-                    if (! $roomIsFree && $isBlocking) {
-                        $validator->errors()->add('room_id', 'This room is not available for the selected dates.');
-
-                        return;
-                    }
-                }
-
-                if ($isBlocking) {
-                    $capacity = $availability->typeAvailability(
-                        $this->integer('property_id'),
-                        $this->integer('room_type_id'),
-                        $checkIn,
-                        $checkOut,
-                        $booking?->id,
-                    );
-
-                    if ($capacity < 1) {
-                        $validator->errors()->add('room_type_id', 'No rooms of this type are available for the selected dates (sold out or stop-sell).');
-
-                        return;
-                    }
-                }
-
-                if (! $this->filled('total_amount') && ! $this->filled('rate_plan_id')) {
+                if ($rooms->count() !== $requestedRoomIds->count()) {
+                    $validator->errors()->add('room_ids', 'One or more selected room categories are inactive.');
                     return;
                 }
 
-                if (! $this->filled('total_amount')) {
-                    $ratePlan = RatePlan::query()->find($this->integer('rate_plan_id'));
+                if ($isBlocking) {
+                    foreach ($rooms as $room) {
+                        if (! $availability->roomIsAvailable($room, $checkIn, $checkOut, $booking?->id)) {
+                            $validator->errors()->add('room_ids', "Room {$room->room_number} is not available for the selected dates.");
 
-                    if ($ratePlan && $availability->quote($ratePlan, $checkIn, $checkOut) === null) {
-                        $validator->errors()->add('rate_plan_id', 'This rate plan is closed for one or more of the selected nights — enter a price manually or pick different dates.');
+                            return;
+                        }
+                    }
+
+                    foreach ($rooms->groupBy('room_type_id') as $roomTypeId => $roomsOfType) {
+                        $capacity = $availability->typeAvailability(
+                            $this->integer('property_id'),
+                            (int) $roomTypeId,
+                            $checkIn,
+                            $checkOut,
+                            $booking?->id,
+                        );
+
+                        if ($capacity < $roomsOfType->count()) {
+                            $validator->errors()->add('room_ids', 'These rooms cannot be sold for the selected dates (sold out or stop-sell).');
+
+                            return;
+                        }
+                    }
+                }
+
+                if (! $this->filled('total_amount')) {
+                    foreach ($rooms->unique('room_type_id') as $room) {
+                        $ratePlan = RatePlan::defaultFor($this->integer('property_id'), $room->room_type_id);
+
+                        if (! $ratePlan || $availability->quote($ratePlan, $checkIn, $checkOut) === null) {
+                            $validator->errors()->add('total_amount', "No nightly rate is set for room {$room->room_number} on these dates — enter a total price manually.");
+
+                            return;
+                        }
                     }
                 }
             },
@@ -136,18 +147,17 @@ class BookingRequest extends FormRequest
         $checkIn = CarbonImmutable::parse($validated['check_in_date']);
         $checkOut = CarbonImmutable::parse($validated['check_out_date']);
 
-        $ratePlan = isset($validated['rate_plan_id'])
-            ? RatePlan::query()->find($validated['rate_plan_id'])
-            : null;
+        $firstRoom = Room::query()->findOrFail(collect($validated['room_ids'])->filter()->first());
+        $ratePlan = RatePlan::defaultFor((int) $validated['property_id'], $firstRoom->room_type_id);
 
         $totalMinor = isset($validated['total_amount']) && $validated['total_amount'] !== null
             ? (int) round(((float) $validated['total_amount']) * 100)
-            : (int) app(AvailabilityService::class)->quote($ratePlan, $checkIn, $checkOut);
+            : (int) ($ratePlan ? app(AvailabilityService::class)->quote($ratePlan, $checkIn, $checkOut) : 0);
 
         return [
             'property_id' => $validated['property_id'],
-            'room_type_id' => $validated['room_type_id'],
-            'room_id' => $validated['room_id'] ?? null,
+            'room_type_id' => $firstRoom->room_type_id,
+            'room_id' => $firstRoom->id,
             'rate_plan_id' => $ratePlan?->id,
             'user_id' => $validated['user_id'] ?? null,
             'status' => $validated['status'],
@@ -161,6 +171,9 @@ class BookingRequest extends FormRequest
             'adults' => $validated['adults'],
             'children' => $validated['children'],
             'total_amount_minor' => $totalMinor,
+            'corporate_id' => $validated['corporate_id'] ?? null,
+            'billing' => $validated['billing'] ?? Booking::BILLING_GUEST,
+            'payment_status' => $validated['payment_status'] ?? ($this->route('booking')?->payment_status ?: Booking::PAYMENT_UNPAID),
             'currency' => strtoupper($validated['currency']),
             'special_requests' => $validated['special_requests'] ?? null,
             'internal_notes' => $validated['internal_notes'] ?? null,
@@ -169,17 +182,29 @@ class BookingRequest extends FormRequest
     }
 
     /**
+     * Statuses a staff member may set from the booking form. Checked in / checked out
+     * are reachable only through the stay workflow, and cancellation through its own action.
+     *
      * @return array<string, string>
      */
-    public function statuses(): array
+    public static function statusOptionsFor(?Booking $booking): array
     {
-        return [
-            Booking::STATUS_PENDING => 'Pending',
-            Booking::STATUS_CONFIRMED => 'Confirmed',
-            Booking::STATUS_CHECKED_IN => 'Checked in',
-            Booking::STATUS_CHECKED_OUT => 'Checked out',
-            Booking::STATUS_CANCELLED => 'Cancelled',
+        $labels = Booking::statusLabels();
+
+        if ($booking && in_array($booking->status, [Booking::STATUS_CHECKED_IN, Booking::STATUS_CHECKED_OUT], true)) {
+            return [$booking->status => $labels[$booking->status]];
+        }
+
+        $options = [
+            Booking::STATUS_PENDING => $labels[Booking::STATUS_PENDING],
+            Booking::STATUS_CONFIRMED => $labels[Booking::STATUS_CONFIRMED],
         ];
+
+        if ($booking?->status === Booking::STATUS_CANCELLED) {
+            $options[Booking::STATUS_CANCELLED] = $labels[Booking::STATUS_CANCELLED];
+        }
+
+        return $options;
     }
 
     /**

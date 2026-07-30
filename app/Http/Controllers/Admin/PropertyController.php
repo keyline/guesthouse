@@ -171,6 +171,7 @@ class PropertyController extends Controller
     {
         return Amenity::query()
             ->where('is_active', true)
+            ->where('scope', \App\Models\Amenity::SCOPE_PROPERTY)
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get();

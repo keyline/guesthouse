@@ -37,7 +37,7 @@ class AdminOnlineInventoryTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.online-inventory.index'))
             ->assertOk()
-            ->assertSee('Choose a property')
+            ->assertSee('Portfolio online availability')
             ->assertSee($property->name);
     }
 
@@ -50,12 +50,32 @@ class AdminOnlineInventoryTest extends TestCase
         $this->room($property, $roomType, ['room_number' => '102', 'status' => Room::STATUS_MAINTENANCE]);
 
         $this->actingAs($admin)
+            ->withSession([\App\Support\AdminPropertyScope::SESSION_KEY => $property->id])
             ->get(route('admin.online-inventory.index', ['property_id' => $property->id]))
             ->assertOk()
             ->assertSee($property->name)
             ->assertSee('101')
             ->assertSee('102')
-            ->assertSee('Save changes');
+            ->assertSee('Save');
+    }
+
+    public function test_all_properties_context_shows_rooms_from_every_property_and_ignores_stale_url_filter(): void
+    {
+        $admin = $this->adminUser();
+        $first = $this->property();
+        $second = $this->property();
+        $second->update(['name' => 'North Guest House']);
+        $type = $this->roomType();
+        $this->room($first, $type, ['room_number' => 'A101']);
+        $this->room($second, $type, ['room_number' => 'B201']);
+
+        $this->actingAs($admin)
+            ->get(route('admin.online-inventory.index', ['property_id' => $first->id]))
+            ->assertOk()
+            ->assertSee($first->name)
+            ->assertSee($second->name)
+            ->assertSee('A101')
+            ->assertSee('B201');
     }
 
     public function test_admin_can_mark_rooms_online_bookable(): void

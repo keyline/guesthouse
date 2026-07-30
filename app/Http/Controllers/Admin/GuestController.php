@@ -5,11 +5,16 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\GuestRequest;
 use App\Models\Booking;
+use App\Models\Corporate;
 use App\Models\User;
 use App\Support\AdminNavigation;
+use App\Support\PhoneNumber;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class GuestController extends Controller
 {
@@ -17,13 +22,17 @@ class GuestController extends Controller
     {
         $guests = User::query()
             ->where('role', User::ROLE_CUSTOMER)
+            ->with('corporate')
             ->withCount('bookings')
             ->when($request->string('search')->toString(), function ($query, string $search): void {
                 $query->where(function ($query) use ($search): void {
                     $query
                         ->where('name', 'like', '%'.$search.'%')
                         ->orWhere('email', 'like', '%'.$search.'%')
-                        ->orWhere('phone', 'like', '%'.$search.'%');
+                        ->orWhere('phone', 'like', '%'.$search.'%')
+                        ->orWhereHas('corporate', fn ($corporate) => $corporate
+                            ->where('legal_name', 'like', '%'.$search.'%')
+                            ->orWhere('gstin', 'like', '%'.strtoupper($search).'%'));
                 });
             })
             ->when($request->filled('active'), fn ($query) => $query->where('is_active', $request->boolean('active')))
@@ -48,9 +57,36 @@ class GuestController extends Controller
         ]);
     }
 
+    public function lookup(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'country_code' => ['required', Rule::in(array_keys(PhoneNumber::countryCodes()))],
+            'mobile' => ['required', 'string', 'max:20'],
+        ]);
+        $phone = PhoneNumber::normalize($validated['country_code'], $validated['mobile']);
+        $guest = User::query()->with('corporate')->where('role', User::ROLE_CUSTOMER)->where('phone_e164', $phone['e164'])->first();
+
+        return response()->json([
+            'found' => (bool) $guest,
+            'phone_e164' => $phone['e164'],
+            'guest' => $guest ? [
+                'id' => $guest->id, 'public_id' => $guest->public_id, 'name' => $guest->name,
+                'email' => $guest->email, 'phone' => $guest->phone_e164, 'customer_type' => $guest->customer_type,
+                'corporate' => $guest->corporate?->legal_name, 'bookings_count' => $guest->bookings()->count(),
+                'last_booking' => $guest->last_booking_at?->format('d M Y'),
+                'show_url' => route('admin.guests.show', $guest), 'edit_url' => route('admin.guests.edit', $guest),
+            ] : null,
+        ]);
+    }
+
     public function store(GuestRequest $request): RedirectResponse
     {
-        $guest = User::query()->create($request->attributesForModel());
+        $guest = DB::transaction(function () use ($request): User {
+            $corporate = $request->input('customer_type') === 'corporate'
+                ? Corporate::query()->create($request->corporateAttributes())
+                : null;
+            return User::query()->create($request->attributesForModel() + ['corporate_id' => $corporate?->id]);
+        });
 
         $this->linkHistoricalBookings($guest);
 
@@ -63,7 +99,7 @@ class GuestController extends Controller
     {
         $this->ensureCustomer($guest);
 
-        $guest->load(['bookings.property', 'bookings.roomType', 'bookings.room']);
+        $guest->load(['corporate', 'bookings.property', 'bookings.roomType', 'bookings.room']);
 
         return view('admin.guests.show', [
             'guest' => $guest,
@@ -76,6 +112,7 @@ class GuestController extends Controller
     {
         $this->ensureCustomer($guest);
 
+        $guest->load('corporate');
         return view('admin.guests.edit', [
             'guest' => $guest,
             'navItems' => AdminNavigation::make('guests'),
@@ -86,7 +123,18 @@ class GuestController extends Controller
     {
         $this->ensureCustomer($guest);
 
-        $guest->update($request->attributesForModel());
+        DB::transaction(function () use ($request, $guest): void {
+            $corporate = null;
+            if ($request->input('customer_type') === 'corporate') {
+                $corporate = $guest->corporate;
+                if ($corporate) {
+                    $corporate->update($request->corporateAttributes());
+                } else {
+                    $corporate = Corporate::query()->create($request->corporateAttributes());
+                }
+            }
+            $guest->update($request->attributesForModel() + ['corporate_id' => $corporate?->id]);
+        });
         $this->linkHistoricalBookings($guest);
 
         return redirect()

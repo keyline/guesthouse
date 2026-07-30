@@ -19,25 +19,21 @@ class RoomPricingSchemaTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_booking_can_be_created_without_a_room_assignment(): void
+    public function test_booking_requires_at_least_one_room_from_the_board(): void
     {
         $admin = $this->adminUser();
         [$property, $roomType] = $this->propertyWithRooms(2);
 
         $this->actingAs($admin)
-            ->post(route('admin.bookings.store'), $this->bookingPayload($property, $roomType))
-            ->assertSessionHasNoErrors()
-            ->assertRedirect();
+            ->post(route('admin.bookings.store'), $this->bookingPayload($property, $roomType, [
+                'room_ids' => [],
+            ]))
+            ->assertSessionHasErrors('room_ids');
 
-        $this->assertDatabaseHas('bookings', [
-            'property_id' => $property->id,
-            'room_type_id' => $roomType->id,
-            'room_id' => null,
-            'guest_name' => 'Walk In Guest',
-        ]);
+        $this->assertDatabaseCount('bookings', 0);
     }
 
-    public function test_booking_priced_from_rate_plan_daily_rates(): void
+    public function test_booking_priced_from_default_rate_plan_daily_rates(): void
     {
         $admin = $this->adminUser();
         [$property, $roomType] = $this->propertyWithRooms(2);
@@ -52,7 +48,6 @@ class RoomPricingSchemaTest extends TestCase
 
         $this->actingAs($admin)
             ->post(route('admin.bookings.store'), $this->bookingPayload($property, $roomType, [
-                'rate_plan_id' => $plan->id,
                 'total_amount' => null,
                 'check_in_date' => now()->toDateString(),
                 'check_out_date' => now()->addDays(2)->toDateString(),
@@ -121,7 +116,7 @@ class RoomPricingSchemaTest extends TestCase
 
         $booking = Booking::query()->firstOrFail();
 
-        $this->actingAs($admin)->delete(route('admin.bookings.destroy', $booking));
+        $this->actingAs($admin)->delete(route('admin.bookings.destroy', $booking), ['cancellation_reason' => 'guest_request']);
 
         $this->assertDatabaseHas('room_type_inventory', [
             'property_id' => $property->id,
@@ -144,7 +139,7 @@ class RoomPricingSchemaTest extends TestCase
             ->post(route('admin.bookings.store'), $this->bookingPayload($property, $roomType, [
                 'guest_name' => 'Second Guest',
             ]))
-            ->assertSessionHasErrors('room_type_id');
+            ->assertSessionHasErrors('room_ids');
 
         $this->assertDatabaseCount('bookings', 1);
     }
@@ -165,7 +160,7 @@ class RoomPricingSchemaTest extends TestCase
 
         $this->actingAs($admin)
             ->post(route('admin.bookings.store'), $this->bookingPayload($property, $roomType))
-            ->assertSessionHasErrors('room_type_id');
+            ->assertSessionHasErrors('room_ids');
     }
 
     public function test_quote_returns_null_when_a_night_is_closed(): void
@@ -286,8 +281,7 @@ class RoomPricingSchemaTest extends TestCase
     {
         return array_merge([
             'property_id' => $property->id,
-            'room_type_id' => $roomType->id,
-            'room_id' => null,
+            'room_ids' => [Room::query()->where('property_id', $property->id)->orderBy('room_number')->value('id')],
             'status' => Booking::STATUS_CONFIRMED,
             'source' => Booking::SOURCE_DIRECT,
             'guest_name' => 'Walk In Guest',

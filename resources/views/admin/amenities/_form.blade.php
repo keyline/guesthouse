@@ -66,12 +66,24 @@
             @error('sort_order')<p class="mt-1 text-xs text-rose-600">{{ $message }}</p>@enderror
         </div>
 
-        <div class="md:col-span-3">
-            <label class="mt-6 inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold text-slate-700">
+        <div>
+            <label class="block text-xs font-bold text-slate-600">Used at *</label>
+            <select name="scope" required class="mt-1 h-9 w-full rounded border border-slate-300 bg-white px-2.5 text-sm">
+                @foreach(\App\Models\Amenity::scopeLabels() as $value=>$label)
+                    <option value="{{ $value }}" @selected(old('scope',$amenity->scope ?: \App\Models\Amenity::SCOPE_ROOM_CATEGORY) === $value)>{{ $label }}</option>
+                @endforeach
+            </select>
+            <p class="mt-1 text-[11px] font-semibold text-slate-400">Property = shared facility (Wi-Fi, parking). Room type = in-room feature (TV, AC), which you can fine-tune per property and per room.</p>
+        </div>
+
+        <div class="flex flex-wrap items-end gap-2 md:col-span-3">
+            <label class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold text-slate-700">
                 <input type="hidden" name="is_active" value="0">
                 <input type="checkbox" name="is_active" value="1" class="rounded border-slate-300 text-sky-600 focus:ring-sky-600" @checked(old('is_active', $amenity->is_active ?? true))>
-                Active and selectable on property page
+                Active
             </label>
+            <label class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold text-slate-700"><input type="checkbox" name="supports_fee" value="1" @checked(old('supports_fee',$amenity->supports_fee))> Can be chargeable</label>
+            <label class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold text-slate-700"><input type="checkbox" name="is_guest_visible" value="1" @checked(old('is_guest_visible',$amenity->is_guest_visible ?? true))> Guest visible</label>
         </div>
     </div>
 </div>

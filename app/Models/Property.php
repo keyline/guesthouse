@@ -7,7 +7,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
+use Carbon\CarbonInterface;
 
 class Property extends Model
 {
@@ -97,9 +99,39 @@ class Property extends Model
         return $this->hasMany(Room::class)->orderBy('room_number');
     }
 
+    public function roomTypeConfigurations(): HasMany
+    {
+        return $this->hasMany(PropertyRoomType::class);
+    }
+
     public function bookings(): HasMany
     {
         return $this->hasMany(Booking::class)->latest('check_in_date');
+    }
+
+    public function ruleSets(): HasMany
+    {
+        return $this->hasMany(PropertyRuleSet::class);
+    }
+
+    public function publishedRuleSet(): HasOne
+    {
+        return $this->hasOne(PropertyRuleSet::class)
+            ->where('status', PropertyRuleSet::STATUS_PUBLISHED)
+            ->where(fn ($query) => $query->whereNull('effective_from')->orWhereDate('effective_from', '<=', today()))
+            ->where(fn ($query) => $query->whereNull('effective_until')->orWhereDate('effective_until', '>=', today()))
+            ->latestOfMany('version');
+    }
+
+    public function publishedRulesFor(CarbonInterface|string|null $date = null): ?PropertyRuleSet
+    {
+        $date = $date ? \Carbon\CarbonImmutable::parse($date)->toDateString() : today()->toDateString();
+
+        return $this->ruleSets()
+            ->where('status', PropertyRuleSet::STATUS_PUBLISHED)
+            ->where(fn ($query) => $query->whereNull('effective_from')->orWhereDate('effective_from', '<=', $date))
+            ->where(fn ($query) => $query->whereNull('effective_until')->orWhereDate('effective_until', '>=', $date))
+            ->with('rules')->latest('version')->first();
     }
 
     public function banquets(): HasMany

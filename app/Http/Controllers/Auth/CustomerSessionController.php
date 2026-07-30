@@ -54,6 +54,8 @@ class CustomerSessionController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('customer.login');
+        // MMT/OYO-style: drop the guest back on the home page (still browsable,
+        // with Login/Register available) rather than a standalone login screen.
+        return redirect()->to('/')->with('status', 'You have been logged out.');
     }
 }

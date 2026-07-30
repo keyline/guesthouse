@@ -183,7 +183,7 @@
             <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <div>
                     <p class="text-xs font-bold text-slate-700">Select property amenities from master list</p>
-                    <p class="mt-0.5 text-[11px] font-semibold text-slate-500">These amenities can be reused for properties and room types.</p>
+                    <p class="mt-0.5 text-[11px] font-semibold text-slate-500">Shared property facilities and services only. Configure in-room amenities separately under each Room Type property card.</p>
                 </div>
                 <span class="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-black uppercase tracking-wide text-slate-600">Master data</span>
             </div>

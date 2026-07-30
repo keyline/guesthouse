@@ -3,9 +3,11 @@
 namespace Tests\Feature;
 
 use App\Models\Property;
+use App\Models\Booking;
 use App\Models\Room;
 use App\Models\RoomType;
 use App\Models\User;
+use App\Support\AdminPropertyScope;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -36,13 +38,34 @@ class AdminRoomInventoryTest extends TestCase
             ->post(route('admin.room-types.store'), $this->roomTypePayload([
                 'name' => 'Deluxe Double',
                 'code' => 'DLX',
+                'is_pet_friendly' => '1',
+                'extra_bed_available' => '1',
+                'max_extra_beds' => 1,
+                'extra_bed_charge' => '750.50',
+                'extra_bed_charge_basis' => 'per_night',
             ]))
             ->assertRedirect();
 
         $this->assertDatabaseHas('room_types', [
             'name' => 'Deluxe Double',
-            'code' => 'DLX',
+            'code' => 'deluxe-double',
+            'is_pet_friendly' => true,
+            'extra_bed_available' => true,
+            'max_extra_beds' => 1,
+            'extra_bed_charge_minor' => 75050,
+            'extra_bed_charge_basis' => 'per_night',
         ]);
+    }
+
+    public function test_room_type_code_is_slugged_and_numbered_when_duplicate(): void
+    {
+        $admin = $this->adminUser();
+
+        $this->actingAs($admin)->post(route('admin.room-types.store'), $this->roomTypePayload(['name' => 'Basic Testing']))->assertRedirect();
+        $this->actingAs($admin)->post(route('admin.room-types.store'), $this->roomTypePayload(['name' => 'Basic Testing']))->assertRedirect();
+
+        $this->assertDatabaseHas('room_types', ['name' => 'Basic Testing', 'code' => 'basic-testing']);
+        $this->assertDatabaseHas('room_types', ['name' => 'Basic Testing', 'code' => 'basic-testing-2']);
     }
 
     public function test_admin_can_create_room(): void
@@ -52,6 +75,7 @@ class AdminRoomInventoryTest extends TestCase
         $roomType = $this->roomType();
 
         $this->actingAs($admin)
+            ->withSession([AdminPropertyScope::SESSION_KEY => $property->id])
             ->post(route('admin.rooms.store'), $this->roomPayload($property, $roomType, [
                 'room_number' => '101',
                 'floor' => '1st Floor',
@@ -67,6 +91,20 @@ class AdminRoomInventoryTest extends TestCase
             'status' => Room::STATUS_AVAILABLE,
             'is_accessible' => true,
         ]);
+    }
+
+    public function test_add_room_uses_header_property_and_has_no_property_dropdown(): void
+    {
+        $admin = $this->adminUser();
+        $property = $this->property();
+
+        $this->actingAs($admin)
+            ->withSession([AdminPropertyScope::SESSION_KEY => $property->id])
+            ->get(route('admin.rooms.create', ['property_id' => 999999]))
+            ->assertOk()
+            ->assertSee($property->name)
+            ->assertDontSee('id="property_id"', false)
+            ->assertSee('name="property_id" value="'.$property->id.'"', false);
     }
 
     public function test_admin_can_update_room_status(): void
@@ -120,6 +158,44 @@ class AdminRoomInventoryTest extends TestCase
         $this->assertDatabaseHas('room_types', [
             'id' => $roomType->id,
         ]);
+    }
+
+    public function test_room_type_with_only_historical_booking_can_be_deactivated_without_losing_history(): void
+    {
+        $admin = $this->adminUser();
+        $property = $this->property();
+        $type = $this->roomType();
+        $room = Room::query()->create($this->roomPayload($property, $type, ['room_number' => '404', 'is_online_bookable' => true]));
+        $booking = Booking::query()->create([
+            'property_id' => $property->id, 'room_type_id' => $type->id, 'room_id' => $room->id,
+            'status' => Booking::STATUS_CHECKED_OUT, 'source' => Booking::SOURCE_DIRECT, 'guest_name' => 'Past Guest',
+            'check_in_date' => now()->subDays(3), 'check_out_date' => now()->subDays(2), 'nights' => 1,
+            'adults' => 1, 'children' => 0, 'total_amount_minor' => 100000, 'currency' => 'INR',
+        ]);
+
+        $this->actingAs($admin)->post(route('admin.room-types.toggle-status', $type))->assertRedirect();
+
+        $this->assertDatabaseHas('room_types', ['id' => $type->id, 'status' => RoomType::STATUS_INACTIVE]);
+        $this->assertDatabaseHas('rooms', ['id' => $room->id, 'is_online_bookable' => false]);
+        $this->assertDatabaseHas('bookings', ['id' => $booking->id, 'room_type_id' => $type->id]);
+        $this->actingAs($admin)->get(route('admin.rooms.index'))->assertDontSee('404');
+    }
+
+    public function test_room_type_cannot_be_deactivated_with_upcoming_booking(): void
+    {
+        $admin = $this->adminUser();
+        $property = $this->property();
+        $type = $this->roomType();
+        $room = Room::query()->create($this->roomPayload($property, $type));
+        Booking::query()->create([
+            'property_id' => $property->id, 'room_type_id' => $type->id, 'room_id' => $room->id,
+            'status' => Booking::STATUS_CONFIRMED, 'source' => Booking::SOURCE_DIRECT, 'guest_name' => 'Future Guest',
+            'check_in_date' => now()->addDay(), 'check_out_date' => now()->addDays(2), 'nights' => 1,
+            'adults' => 1, 'children' => 0, 'total_amount_minor' => 100000, 'currency' => 'INR',
+        ]);
+
+        $this->actingAs($admin)->post(route('admin.room-types.toggle-status', $type))->assertSessionHasErrors('room_type');
+        $this->assertDatabaseHas('room_types', ['id' => $type->id, 'status' => RoomType::STATUS_ACTIVE]);
     }
 
     private function adminUser(): User

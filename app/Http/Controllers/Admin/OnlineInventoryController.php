@@ -18,7 +18,9 @@ class OnlineInventoryController extends Controller
     {
         $properties = $scope->properties();
 
-        $propertyId = $request->integer('property_id') ?: $scope->selectedPropertyId();
+        // The global selector is authoritative on this dashboard. In particular,
+        // a stale ?property_id= URL must not override the super-admin's All Properties context.
+        $propertyId = $scope->selectedPropertyId();
 
         if ($propertyId) {
             abort_unless($scope->canAccessProperty($propertyId), 404);
@@ -32,48 +34,20 @@ class OnlineInventoryController extends Controller
                 'property' => null,
                 'roomGroups' => collect(),
                 'propertySummaries' => $this->propertySummaries($properties),
+                'propertyInventories' => $properties->map(fn (Property $item) => $this->inventoryFor($item)),
                 'navItems' => AdminNavigation::make('rooms'),
             ]);
         }
-
-        $rooms = Room::query()
-            ->where('property_id', $property->id)
-            ->with('roomType')
-            ->orderBy('room_number')
-            ->get();
-
-        $upcomingOnlineBookings = Booking::query()
-            ->where('property_id', $property->id)
-            ->whereNotNull('room_id')
-            ->whereIn('status', Booking::blockingStatuses())
-            ->whereDate('check_out_date', '>', now()->toDateString())
-            ->get()
-            ->countBy('room_id');
-
-        $roomGroups = $rooms
-            ->groupBy(fn (Room $room) => $room->roomType?->name ?? 'Unassigned Type')
-            ->sortKeys()
-            ->map(fn ($groupRooms) => [
-                'floors' => $groupRooms
-                    ->groupBy(fn (Room $room) => $room->floor ?: 'No floor')
-                    ->sortKeysUsing('strnatcasecmp')
-                    ->map(fn ($floorRooms) => $floorRooms->sortBy('room_number', SORT_NATURAL)->values()),
-                'total' => $groupRooms->count(),
-                'online' => $groupRooms
-                    ->filter(fn (Room $room) => $room->is_online_bookable && $room->status === Room::STATUS_AVAILABLE)
-                    ->count(),
-            ]);
+        $inventory = $this->inventoryFor($property);
 
         return view('admin.online-inventory.index', [
             'mode' => 'property',
             'property' => $property,
             'properties' => $properties,
-            'roomGroups' => $roomGroups,
-            'totalRooms' => $rooms->count(),
-            'onlineRooms' => $rooms
-                ->filter(fn (Room $room) => $room->is_online_bookable && $room->status === Room::STATUS_AVAILABLE)
-                ->count(),
-            'upcomingBookedRoomIds' => $upcomingOnlineBookings,
+            'roomGroups' => $inventory['roomGroups'],
+            'totalRooms' => $inventory['totalRooms'],
+            'onlineRooms' => $inventory['onlineRooms'],
+            'upcomingBookedRoomIds' => $inventory['upcomingBookedRoomIds'],
             'navItems' => AdminNavigation::make('rooms'),
         ]);
     }
@@ -84,6 +58,7 @@ class OnlineInventoryController extends Controller
             'property_id' => ['required', 'integer'],
             'room_ids' => ['nullable', 'array'],
             'room_ids.*' => ['integer'],
+            'return_mode' => ['nullable', 'in:overview'],
         ]);
 
         $propertyId = (int) $validated['property_id'];
@@ -108,9 +83,32 @@ class OnlineInventoryController extends Controller
             ->onlineBookable()
             ->count();
 
+        $routeParameters = ($validated['return_mode'] ?? null) === 'overview' ? [] : ['property_id' => $propertyId];
+
         return redirect()
-            ->route('admin.online-inventory.index', ['property_id' => $propertyId])
+            ->route('admin.online-inventory.index', $routeParameters)
             ->with('status', "Online inventory updated. {$onlineCount} room(s) now sellable online.");
+    }
+
+    private function inventoryFor(Property $property): array
+    {
+        $rooms = Room::query()->where('property_id', $property->id)
+            ->whereHas('roomType', fn ($query) => $query->where('status', \App\Models\RoomType::STATUS_ACTIVE))
+            ->with('roomType')->orderBy('room_number')->get();
+        $upcoming = Booking::query()->where('property_id', $property->id)->whereNotNull('room_id')
+            ->whereIn('status', Booking::blockingStatuses())->whereDate('check_out_date', '>', now()->toDateString())
+            ->get()->countBy('room_id');
+        $groups = $rooms->groupBy(fn (Room $room) => $room->roomType?->name ?? 'Unassigned Type')->sortKeys()
+            ->map(fn ($groupRooms) => [
+                'floors' => $groupRooms->groupBy(fn (Room $room) => $room->floor ?: 'No floor')->sortKeysUsing('strnatcasecmp')
+                    ->map(fn ($floorRooms) => $floorRooms->sortBy('room_number', SORT_NATURAL)->values()),
+                'total' => $groupRooms->count(),
+                'online' => $groupRooms->filter(fn (Room $room) => $room->is_online_bookable && $room->status === Room::STATUS_AVAILABLE)->count(),
+            ]);
+
+        return ['property' => $property, 'roomGroups' => $groups, 'totalRooms' => $rooms->count(),
+            'onlineRooms' => $rooms->filter(fn (Room $room) => $room->is_online_bookable && $room->status === Room::STATUS_AVAILABLE)->count(),
+            'upcomingBookedRoomIds' => $upcoming];
     }
 
     /**

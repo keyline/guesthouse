@@ -22,6 +22,7 @@
                         <p class="text-sm font-bold uppercase tracking-wide text-slate-500">Guest account</p>
                         <h2 class="mt-1 text-2xl font-black">{{ $guest->name }}</h2>
                         <p class="mt-2 text-sm font-semibold text-slate-500">{{ $guest->email }} {{ $guest->phone ? ' / '.$guest->phone : '' }}</p>
+                        @if($guest->corporate)<p class="mt-1 text-xs font-black text-blue-700">{{ $guest->corporate->legal_name }} · GSTIN {{ $guest->corporate->gstin }}</p>@endif
                     </div>
                     <span class="w-fit rounded-full bg-slate-950 px-3 py-1 text-xs font-black uppercase tracking-wide text-white">{{ $guest->is_active ? 'Active' : 'Inactive' }}</span>
                 </div>
@@ -83,8 +84,12 @@
 
             <section class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
                 <h2 class="text-lg font-black">Address</h2>
-                <p class="mt-3 whitespace-pre-line text-sm leading-6 text-slate-600">{{ $guest->address ?: 'No address added.' }}</p>
+                <p class="mt-3 text-sm leading-6 text-slate-600">{{ $guest->formattedAddress() ?: 'No address added.' }}</p>
             </section>
+
+            @if($guest->corporate)
+                <section class="rounded-lg border border-blue-200 bg-blue-50/60 p-5 shadow-sm"><div class="flex items-center justify-between"><h2 class="text-lg font-black text-blue-950">Corporate account</h2><span class="rounded bg-blue-100 px-2 py-1 text-[10px] font-black text-blue-700">B2B</span></div><dl class="mt-4 space-y-2 text-sm"><div class="flex justify-between gap-4"><dt class="text-slate-500">Legal name</dt><dd class="font-black text-right">{{ $guest->corporate->legal_name }}</dd></div><div class="flex justify-between gap-4"><dt class="text-slate-500">GSTIN</dt><dd class="font-mono font-black">{{ $guest->corporate->gstin }}</dd></div><div class="flex justify-between gap-4"><dt class="text-slate-500">PAN</dt><dd class="font-mono font-black">{{ $guest->corporate->pan ?: '-' }}</dd></div><div class="border-t border-blue-100 pt-2 text-slate-600">{{ $guest->corporate->formattedAddress() }}</div></dl></section>
+            @endif
 
             <section class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
                 <h2 class="text-lg font-black">Private Notes</h2>

@@ -55,7 +55,10 @@
                             <span><span class="rounded-full px-2 py-0.5 text-[10px] font-black text-slate-400 ring-1 ring-slate-200">Open</span> / <span class="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-black text-rose-700 ring-1 ring-rose-300">✕ Closed</span> = that plan only</span>
                         </p>
                     </div>
-                    <button type="submit" class="h-10 rounded-lg bg-sky-600 px-5 text-sm font-black text-white transition hover:bg-sky-700">Save changes</button>
+                    <div class="flex items-center gap-3">
+                        <span data-qf-pending hidden class="animate-pulse rounded-full bg-amber-100 px-3 py-1 text-xs font-black text-amber-800 ring-1 ring-amber-300"></span>
+                        <button type="submit" class="h-10 rounded-lg bg-sky-600 px-5 text-sm font-black text-white transition hover:bg-sky-700">Save changes</button>
+                    </div>
                 </div>
 
                 <div class="overflow-x-auto">
@@ -92,7 +95,7 @@
                                 </tr>
                                 @foreach ($plans as $plan)
                                     @php $rates = $plan->dailyRates->keyBy(fn ($rate) => $rate->date->toDateString()); @endphp
-                                    <tr class="border-t border-slate-100">
+                                    <tr class="border-t border-slate-100 bg-white">
                                         @php
                                             $mealLabel = match ($plan->meal_plan) {
                                                 'cp' => 'Room + breakfast',
@@ -101,14 +104,62 @@
                                                 default => 'Room only',
                                             };
                                         @endphp
-                                        <td class="sticky left-0 bg-white px-4 py-2">
-                                            <span class="block text-sm font-black text-slate-900">{{ $plan->name }}</span>
-                                            <span class="block text-[11px] font-semibold text-slate-500">{{ $mealLabel }}</span>
-                                            <span class="block text-[11px] font-semibold text-slate-400"
+                                        <td colspan="{{ count($dates) + 1 }}" class="px-4 py-2">
+                                            <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                            <span class="text-xs font-black text-slate-900">{{ $plan->name }}</span>
+                                            <span class="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">{{ $mealLabel }}</span>
+                                            <span class="text-[10px] font-semibold text-slate-400"
                                                   title="The standard price. Any night without its own price below is sold at this amount. Change it in Room Types & Pricing.">
                                                 Standard ₹{{ number_format($plan->default_price_minor / 100) }}/night ⓘ
                                             </span>
+                                            <div class="relative ml-auto" data-quickfill>
+                                                <button type="button" data-qf-trigger class="inline-flex cursor-pointer select-none items-center gap-1 rounded-md border border-sky-200 bg-sky-50 px-2 py-0.5 text-[11px] font-black text-sky-700 transition hover:bg-sky-100">⚡ Quick fill</button>
+                                                <dialog data-qf-dialog aria-label="Quick fill nightly prices" class="qf-dialog">
+                                                <div class="qf-dialog__box">
+                                                    <header class="flex items-start justify-between gap-3 border-b border-slate-100 bg-slate-50 px-4 py-3">
+                                                        <div class="min-w-0">
+                                                            <p class="text-[10px] font-black uppercase tracking-[.12em] text-sky-700">Quick Fill</p>
+                                                            <h3 class="mt-0.5 truncate text-sm font-black text-slate-900">Update {{ $plan->name }}</h3>
+                                                            <div class="mt-1.5 flex flex-wrap items-center gap-1.5">
+                                                                <span class="inline-flex max-w-full items-center gap-1 rounded-md bg-sky-100 px-2 py-1 text-[10px] font-black text-sky-800" title="Property: {{ $property->name }}"><span aria-hidden="true">🏨</span><span class="truncate">{{ $property->name }}</span></span>
+                                                                <span class="inline-flex items-center rounded-md bg-white px-2 py-1 text-[10px] font-bold text-slate-500 ring-1 ring-slate-200">{{ $start->format('d M') }}–{{ $start->addDays(13)->format('d M Y') }}</span>
+                                                            </div>
+                                                            <p class="mt-1.5 text-[10px] font-semibold text-slate-500">Apply one rule to selected days on this screen.</p>
+                                                        </div>
+                                                        <button type="button" data-qf-close aria-label="Close" class="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-base font-bold text-slate-500 transition hover:border-slate-300 hover:text-slate-900">×</button>
+                                                    </header>
+                                                    <div class="p-4">
+                                                    <p class="text-[10px] font-black uppercase tracking-wide text-slate-500">Price adjustment</p>
+                                                    <div class="mt-1.5 grid grid-cols-[minmax(0,1fr)_100px] gap-2">
+                                                        <select data-qf-mode class="h-10 min-w-0 rounded-lg border border-slate-300 bg-white px-3 text-xs font-bold text-slate-800 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-100">
+                                                            <option value="set">Set price to ₹</option>
+                                                            <option value="inc_pct">Increase by %</option>
+                                                            <option value="dec_pct">Decrease by %</option>
+                                                            <option value="inc_amt">Increase by ₹</option>
+                                                            <option value="dec_amt">Decrease by ₹</option>
+                                                        </select>
+                                                        <input type="number" data-qf-value min="0" step="0.01"
+                                                               placeholder="{{ number_format($plan->default_price_minor / 100, 0, '.', '') }}"
+                                                               class="h-10 w-full rounded-lg border border-slate-300 px-2 text-center text-sm font-black text-slate-900 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-100">
+                                                    </div>
+                                                    <p class="mt-3 text-[10px] font-black uppercase tracking-wide text-slate-500">Apply to</p>
+                                                    <div class="mt-1.5 grid grid-cols-3 gap-1.5" data-qf-days>
+                                                        <button type="button" data-days="all" class="h-9 rounded-lg border border-sky-600 bg-sky-600 px-2 text-[11px] font-black text-white">All {{ count($dates) }} days</button>
+                                                        <button type="button" data-days="weekday" class="h-9 rounded-lg border border-slate-300 px-2 text-[11px] font-black text-slate-600">Mon–Fri</button>
+                                                        <button type="button" data-days="weekend" class="h-9 rounded-lg border border-slate-300 px-2 text-[11px] font-black text-slate-600">Sat–Sun</button>
+                                                    </div>
+                                                    <button type="button" data-qf-apply data-plan="{{ $plan->id }}"
+                                                            class="mt-4 h-10 w-full rounded-lg bg-sky-600 text-sm font-black text-white shadow-sm transition hover:bg-sky-700">Apply to nightly prices</button>
+                                                    <p class="mt-2 text-center text-[10px] font-semibold leading-4 text-slate-400">This only prepares the changes. Prices go live after you press <strong class="text-slate-500">Save changes</strong>.</p>
+                                                    </div>
+                                                </div>
+                                                </dialog>
+                                            </div>
+                                            </div>
                                         </td>
+                                    </tr>
+                                    <tr class="border-t border-slate-100">
+                                        <td class="sticky left-0 z-10 bg-white px-4 py-1.5 text-[10px] font-black uppercase tracking-wide text-slate-400">Nightly price</td>
                                         @foreach ($dates as $date)
                                             @php $rate = $rates->get($date->toDateString()); @endphp
                                             <td class="px-1 py-1.5 text-center">
@@ -116,6 +167,7 @@
                                                        name="rates[{{ $plan->id }}][{{ $date->toDateString() }}][price]"
                                                        value="{{ $rate ? number_format($rate->price_minor / 100, 2, '.', '') : '' }}"
                                                        placeholder="{{ number_format($plan->default_price_minor / 100, 0, '.', '') }}"
+                                                       data-price-input data-plan="{{ $plan->id }}" data-weekend="{{ $date->isWeekend() ? 1 : 0 }}"
                                                        class="h-8 w-[72px] rounded-md border px-1.5 text-center text-xs font-bold {{ $rate?->closed ? 'border-rose-300 bg-rose-50 text-rose-700' : 'border-slate-300' }}">
                                                 <label class="mt-1 inline-flex cursor-pointer" title="Close only this plan for {{ $date->format('d M') }} — other plans keep selling">
                                                     <input type="checkbox" name="rates[{{ $plan->id }}][{{ $date->toDateString() }}][closed]" value="1" @checked($rate?->closed) class="peer sr-only">
@@ -132,5 +184,121 @@
                 </div>
             </section>
         </form>
+
+        <style>
+            .qf-dialog{width:min(92vw,420px);max-width:none;margin:auto;padding:0;border:0;background:transparent;color:inherit;overflow:visible}
+            .qf-dialog::backdrop{background:rgba(15,23,42,.52);backdrop-filter:blur(2px)}
+            .qf-dialog__box{width:100%;max-height:min(680px,88vh);overflow:auto;border:1px solid #dbe3ee;border-radius:16px;background:#fff;box-shadow:0 28px 80px rgba(15,23,42,.3)}
+            @media(max-width:480px){.qf-dialog{width:calc(100vw - 24px)}.qf-dialog__box{border-radius:13px}}
+        </style>
+
+        <script>
+            (function () {
+                var changed = 0;
+                var pendingChip = document.querySelector('[data-qf-pending]');
+
+                function markChanged(input) {
+                    if (! input.classList.contains('qf-touched')) {
+                        input.classList.add('qf-touched', 'border-amber-400', 'bg-amber-50');
+                        changed++;
+                    }
+                }
+
+                document.querySelectorAll('[data-quickfill]').forEach(function (box) {
+                    var dialog = box.querySelector('[data-qf-dialog]');
+                    var closeQuickFill = function () {
+                        if (dialog?.open) dialog.close();
+                        document.body.classList.remove('overflow-hidden');
+                    };
+                    box.querySelector('[data-qf-trigger]')?.addEventListener('click', function () {
+                        document.querySelectorAll('[data-qf-dialog][open]').forEach(function (other) { if (other !== dialog) other.close(); });
+                        dialog?.showModal();
+                        document.body.classList.add('overflow-hidden');
+                        setTimeout(function () { box.querySelector('[data-qf-mode]')?.focus(); }, 0);
+                    });
+                    box.querySelector('[data-qf-close]')?.addEventListener('click', closeQuickFill);
+                    dialog?.addEventListener('cancel', function (event) { event.preventDefault(); closeQuickFill(); });
+                    dialog?.addEventListener('click', function (event) {
+                        if (event.target === dialog) closeQuickFill();
+                    });
+                    // Day-scope chips: All / Mon–Fri / Sat–Sun.
+                    var scope = 'all';
+                    box.querySelectorAll('[data-qf-days] button').forEach(function (chip) {
+                        chip.addEventListener('click', function () {
+                            scope = chip.dataset.days;
+                            box.querySelectorAll('[data-qf-days] button').forEach(function (other) {
+                                var active = other === chip;
+                                other.classList.toggle('bg-sky-600', active);
+                                other.classList.toggle('border-sky-600', active);
+                                other.classList.toggle('text-white', active);
+                                other.classList.toggle('border-slate-300', ! active);
+                                other.classList.toggle('text-slate-600', ! active);
+                            });
+                        });
+                    });
+
+                    box.querySelector('[data-qf-apply]').addEventListener('click', function () {
+                        var mode = box.querySelector('[data-qf-mode]').value;
+                        var raw = parseFloat(box.querySelector('[data-qf-value]').value);
+
+                        if (isNaN(raw) || raw < 0) {
+                            box.querySelector('[data-qf-value]').focus();
+                            return;
+                        }
+
+                        var planId = this.dataset.plan;
+                        document.querySelectorAll('[data-price-input][data-plan="' + planId + '"]').forEach(function (input) {
+                            var isWeekend = input.dataset.weekend === '1';
+                            if (scope === 'weekday' && isWeekend) return;
+                            if (scope === 'weekend' && ! isWeekend) return;
+
+                            // % and ₹ adjustments work from the visible price,
+                            // falling back to the plan's standard (placeholder).
+                            var base = parseFloat(input.value) || parseFloat(input.placeholder) || 0;
+                            var next;
+                            switch (mode) {
+                                case 'inc_pct': next = Math.round(base * (1 + raw / 100)); break;
+                                case 'dec_pct': next = Math.round(base * (1 - raw / 100)); break;
+                                case 'inc_amt': next = base + raw; break;
+                                case 'dec_amt': next = base - raw; break;
+                                default: next = raw;
+                            }
+
+                            next = Math.max(0, Math.round(next * 100) / 100);
+
+                            if (input.value !== String(next)) {
+                                input.value = next;
+                                markChanged(input);
+                            }
+                        });
+
+                        closeQuickFill();
+
+                        if (changed > 0 && pendingChip) {
+                            pendingChip.textContent = changed + ' price' + (changed === 1 ? '' : 's') + ' updated — not saved yet';
+                            pendingChip.hidden = false;
+                        }
+                    });
+                });
+
+                // Hand-edited boxes count as pending work too.
+                document.querySelectorAll('[data-price-input]').forEach(function (input) {
+                    input.addEventListener('input', function () {
+                        markChanged(input);
+                        if (pendingChip) {
+                            pendingChip.textContent = changed + ' price' + (changed === 1 ? '' : 's') + ' updated — not saved yet';
+                            pendingChip.hidden = false;
+                        }
+                    });
+                });
+
+                document.addEventListener('keydown', function (event) {
+                    if (event.key === 'Escape') {
+                        document.querySelectorAll('[data-qf-dialog][open]').forEach(function (dialog) { dialog.close(); });
+                        document.body.classList.remove('overflow-hidden');
+                    }
+                });
+            })();
+        </script>
     @endif
 @endsection

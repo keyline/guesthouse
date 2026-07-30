@@ -20,7 +20,10 @@ class RatePlanController extends Controller
     public function index(Request $request, AdminPropertyScope $scope): View
     {
         $properties = $scope->properties();
-        $propertyId = $request->integer('property_id') ?: $scope->selectedPropertyId() ?: $properties->first()?->id;
+        // The shared top-bar context is the single source of truth. Keeping a
+        // second property selector on this page allowed the two controls to
+        // disagree and made it too easy to edit the wrong property's rates.
+        $propertyId = $scope->selectedPropertyId();
 
         if ($propertyId) {
             abort_unless($scope->canAccessProperty($propertyId), 404);
@@ -55,11 +58,15 @@ class RatePlanController extends Controller
 
         return view('admin.rate-plans.index', [
             'property' => $property,
-            'properties' => $properties,
             'roomTypes' => $roomTypes,
             'roomCounts' => $roomCounts,
             'plans' => $plans,
             'mealPlans' => RatePlan::mealPlans(),
+            'cancellationPolicies' => \App\Models\CancellationPolicy::query()
+                ->where('is_active', true)
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get(),
             'navItems' => AdminNavigation::make('rooms'),
         ]);
     }
@@ -67,13 +74,19 @@ class RatePlanController extends Controller
     public function store(Request $request, AdminPropertyScope $scope): RedirectResponse
     {
         $validated = $request->validate([
-            'property_id' => ['required', 'integer'],
             'room_type_id' => ['required', 'integer', Rule::exists(RoomType::class, 'id')],
             'meal_plan' => ['required', Rule::in(array_keys(RatePlan::mealPlans()))],
             'amount' => ['required', 'numeric', 'min:0', 'max:99999999'],
         ]);
 
-        $propertyId = (int) $validated['property_id'];
+        $propertyId = $scope->selectedPropertyId();
+
+        if (! $propertyId) {
+            return back()->withErrors([
+                'property_id' => 'Select one property from the top banner before adding a rate plan.',
+            ]);
+        }
+
         abort_unless($scope->canAccessProperty($propertyId), 404);
 
         $roomTypeId = (int) $validated['room_type_id'];
@@ -106,6 +119,7 @@ class RatePlanController extends Controller
                 'code' => $code,
                 'meal_plan' => $mealPlan,
                 'is_refundable' => true,
+                'cancellation_policy_id' => \App\Models\CancellationPolicy::byCode(\App\Models\CancellationPolicy::CODE_FLEXIBLE)?->id,
                 'default_price_minor' => $isDerived
                     ? $basePlan->default_price_minor + $amountMinor
                     : $amountMinor,
@@ -137,7 +151,7 @@ class RatePlanController extends Controller
         });
 
         return redirect()
-            ->route('admin.rate-plans.index', ['property_id' => $propertyId])
+            ->route('admin.rate-plans.index')
             ->with('status', $this->defaultName($mealPlan).' plan created.');
     }
 
@@ -147,13 +161,19 @@ class RatePlanController extends Controller
 
         $validated = $request->validate([
             'price' => ['required', 'numeric', 'min:0', 'max:99999999'],
+            'cancellation_policy_id' => ['nullable', 'integer', Rule::exists(\App\Models\CancellationPolicy::class, 'id')],
         ]);
 
         $newRack = (int) round(((float) $validated['price']) * 100);
         $oldRack = $ratePlan->default_price_minor;
 
-        DB::transaction(function () use ($ratePlan, $newRack, $oldRack): void {
-            $ratePlan->update(['default_price_minor' => $newRack]);
+        DB::transaction(function () use ($ratePlan, $newRack, $oldRack, $validated): void {
+            $ratePlan->update([
+                'default_price_minor' => $newRack,
+                // Applies to new bookings only — existing bookings keep their
+                // frozen policy snapshot.
+                'cancellation_policy_id' => $validated['cancellation_policy_id'] ?? $ratePlan->cancellation_policy_id,
+            ]);
 
             // Roll the new rack rate onto future nights still at the old rack
             // price; date-specific overrides are left untouched.
@@ -166,7 +186,7 @@ class RatePlanController extends Controller
         });
 
         return redirect()
-            ->route('admin.rate-plans.index', ['property_id' => $ratePlan->property_id])
+            ->route('admin.rate-plans.index')
             ->with('status', $ratePlan->name.' price updated.');
     }
 
@@ -181,7 +201,7 @@ class RatePlanController extends Controller
         ]);
 
         return redirect()
-            ->route('admin.rate-plans.index', ['property_id' => $ratePlan->property_id])
+            ->route('admin.rate-plans.index')
             ->with('status', $ratePlan->name.' is now '.$ratePlan->status.'.');
     }
 

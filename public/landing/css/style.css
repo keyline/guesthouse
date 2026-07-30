@@ -469,6 +469,7 @@ a{
 
 .btn-book-now {
     display: inline-block;
+    border: 0;
     background: var(--color-gold);
     color: var(--color-dark);
     font-size: 15px;
@@ -479,9 +480,204 @@ a{
     transition: all 0.3s ease;
 }
 
+/* Guest registration — mobile-first OTP and profile workflow */
+.register-modal[hidden], .register-step:not(.active) { display:none !important; }
+.register-modal { position:fixed; inset:0; z-index:9999; display:grid; place-items:center; padding:20px; }
+.register-modal__backdrop { position:absolute; inset:0; background:rgba(15,23,42,.72); backdrop-filter:blur(3px); }
+.register-modal__panel { position:relative; width:min(780px,calc(100vw - 28px)); max-height:calc(100vh - 40px); overflow:auto; border-radius:18px; background:#fff; box-shadow:0 30px 90px rgba(0,0,0,.35); }
+.register-modal__close { position:absolute; z-index:2; right:16px; top:14px; width:36px; height:36px; border:0; border-radius:50%; background:#fff; color:#172033; font-size:27px; line-height:30px; cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,.15); }
+.register-modal__head { padding:24px 28px 20px; background:linear-gradient(135deg,#172033,#263c63); color:#fff; }
+.register-modal__head p { margin:0 0 4px; color:#91b7ff; font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; }
+.register-modal__head h2 { margin:0; color:#fff; font-size:25px; font-weight:800; }
+.register-modal__head span { display:block; margin-top:5px; color:#cbd5e1; font-size:13px; }
+.register-modal__body { padding:24px 28px 28px; }
+.register-account-tabs { display:grid; grid-template-columns:1fr 1fr; gap:5px; padding:5px; margin-bottom:22px; border-radius:999px; background:#eef2f7; }
+.register-account-tabs button { height:42px; border:0; border-radius:999px; background:transparent; color:#475569; font-size:13px; font-weight:800; cursor:pointer; }
+.register-account-tabs button.active { background:linear-gradient(90deg,#60a5fa,#2563eb); color:#fff; box-shadow:0 5px 15px rgba(37,99,235,.22); }
+.register-label,.register-field>span { display:block; margin-bottom:5px; color:#64748b; font-size:10px; font-weight:800; letter-spacing:.07em; text-transform:uppercase; }
+.register-phone { display:grid; grid-template-columns:150px 1fr; border:1px solid #cbd5e1; border-radius:10px; overflow:hidden; }
+.register-phone select,.register-phone input { height:50px; border:0; background:#fff; padding:0 13px; color:#172033; font-size:15px; }
+.register-phone select { border-right:1px solid #e2e8f0; font-weight:700; }
+.register-primary { width:100%; height:48px; margin-top:18px; border:0; border-radius:9px; background:linear-gradient(90deg,#3b82f6,#1d4ed8); color:#fff; font-size:14px; font-weight:800; cursor:pointer; }
+.register-primary:disabled { opacity:.55; cursor:wait; }
+.register-legal,.register-help { margin:12px 0 0; color:#94a3b8; font-size:11px; text-align:center; }
+.register-error { margin:10px 0 0; color:#be123c; font-size:12px; font-weight:700; text-align:center; }
+.register-back { border:0; background:none; padding:0; color:#2563eb; font-size:12px; font-weight:700; cursor:pointer; }
+.register-step h3 { margin:10px 0 0; color:#172033; font-size:20px; font-weight:800; }
+.register-otp { display:block; width:260px; max-width:100%; height:58px; margin:22px auto 0; border:1px solid #cbd5e1; border-radius:10px; text-align:center; font-size:25px; font-weight:800; letter-spacing:.35em; }
+.register-dev { margin:10px 0 0; padding:8px; border:1px dashed #eab308; border-radius:7px; background:#fffbeb; color:#854d0e; font-size:12px; font-weight:800; text-align:center; }
+.register-profile-title { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; }
+.register-profile-title h3 { margin:0; }.register-profile-title p { margin:2px 0 0; color:#94a3b8; font-size:11px; }.register-profile-title>span { border-radius:999px; background:#ecfdf5; padding:6px 10px; color:#047857; font-size:11px; font-weight:800; }
+.register-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }.register-field.full { grid-column:1/-1; }
+.register-field input,.register-field select { width:100%; height:42px; border:1px solid #cbd5e1; border-radius:8px; background:#fff; padding:0 11px; color:#172033; font-size:13px; }
+.register-field input:focus,.register-field select:focus,.register-phone input:focus,.register-phone select:focus,.register-otp:focus { outline:2px solid #bfdbfe; border-color:#3b82f6; }
+body.register-modal-open { overflow:hidden; }
+@media(max-width:600px){.register-modal{padding:0;align-items:end}.register-modal__panel{width:100%;max-height:94vh;border-radius:18px 18px 0 0}.register-modal__head{padding:20px}.register-modal__body{padding:18px}.register-grid{grid-template-columns:1fr}.register-field.full{grid-column:auto}.register-phone{grid-template-columns:125px 1fr}.register-modal__head h2{font-size:20px}}
+
 .btn-book-now:hover {
     background: var(--color-gold-dark);
     color: #ffffff;
+}
+
+/* account dropdown menu */
+.account-menu {
+    position: relative;
+}
+
+.account-menu__trigger {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    border: 1px solid #ececec;
+    background: linear-gradient(180deg, #ffffff, #fffdf7);
+    padding: 6px 16px 6px 6px;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.account-menu__trigger:hover {
+    border-color: var(--color-gold);
+    box-shadow: 0 6px 18px rgba(203, 161, 53, 0.16);
+    transform: translateY(-1px);
+}
+
+.account-menu__avatar {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f7d774 0%, var(--color-gold) 55%, var(--color-gold-dark) 100%);
+    color: var(--color-dark);
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(203, 161, 53, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.5);
+}
+
+/* little "online" dot */
+.account-menu__avatar::after {
+    content: "";
+    position: absolute;
+    right: -1px;
+    bottom: -1px;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #34d399;
+    border: 2px solid #fff;
+}
+
+.account-menu__text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 1.1;
+    gap: 1px;
+}
+
+.account-menu__greeting {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-gold-dark);
+    white-space: nowrap;
+}
+
+.account-menu__name {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--color-dark);
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.account-menu__caret {
+    font-size: 11px;
+    color: #888888;
+    transition: transform 0.25s ease;
+}
+
+.account-menu__trigger[aria-expanded="true"] .account-menu__caret {
+    transform: rotate(180deg);
+}
+
+.account-menu__dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    min-width: 190px;
+    background: #ffffff;
+    border: 1px solid #ececec;
+    border-radius: 12px;
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.12);
+    padding: 6px;
+    z-index: 100;
+}
+
+.account-menu__dropdown[hidden] {
+    display: none;
+}
+
+.account-menu__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 14px;
+    border: 0;
+    background: transparent;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-dark);
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.account-menu__item i {
+    font-size: 14px;
+    color: #888888;
+    width: 16px;
+}
+
+.account-menu__item:hover {
+    background: #f6f6f6;
+}
+
+.account-menu__item--logout {
+    color: #c0392b;
+}
+
+.account-menu__item--logout i {
+    color: #c0392b;
+}
+
+.mobile-menu__logout {
+    margin-top: 12px;
+}
+
+.mobile-menu__logout-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #e5c4c0;
+    background: #fdf3f2;
+    border-radius: 50px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #c0392b;
+    cursor: pointer;
 }
 
 /* hamburger / mobile nav toggle */

@@ -2,15 +2,40 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Crypt;
 
 class Setting extends Model
 {
+    /**
+     * Store the SMTP key encrypted at rest. The accessor tolerates legacy
+     * plaintext values (returns them as-is) so upgrading is seamless — the
+     * value becomes encrypted the next time settings are saved.
+     */
+    protected function smtpPassword(): Attribute
+    {
+        return Attribute::make(
+            get: function (?string $value) {
+                if (blank($value)) {
+                    return $value;
+                }
+                try {
+                    return Crypt::decryptString($value);
+                } catch (\Throwable) {
+                    return $value; // legacy plaintext
+                }
+            },
+            set: fn (?string $value) => blank($value) ? $value : Crypt::encryptString($value),
+        );
+    }
+
     protected $fillable = [
         'site_name',
         'site_tagline',
         'site_description',
         'logo_path',
+        'icon_path',
         'favicon_path',
         'business_name',
         'business_type',

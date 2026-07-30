@@ -94,9 +94,16 @@ class SettingsController extends Controller
             'maximum_advance_booking_days' => 'nullable|integer|min:1',
             'cancellation_policy_days' => 'nullable|integer|min:0',
             'cancellation_policy_description' => 'nullable|string',
+            'smtp_host' => 'nullable|string|max:255',
+            'smtp_port' => 'nullable|integer|min:1|max:65535',
+            'smtp_username' => 'nullable|string|max:255',
+            'smtp_password' => 'nullable|string|max:255',
+            'smtp_encryption' => 'nullable|in:tls,ssl,none',
+            'notification_email_sender' => 'nullable|email',
             'enable_guest_reviews' => 'boolean',
             'enable_online_payment' => 'boolean',
             'logo' => 'nullable|image|mimes:jpeg,png,svg,webp|max:2048',
+            'icon' => 'nullable|image|mimes:jpeg,png,svg,webp|max:1024',
             'favicon' => 'nullable|image|mimes:jpeg,png,ico,svg|max:512',
             'admin_sidebar_color' => [
                 Rule::excludeIf(! $request->user()->hasRole(\App\Models\User::ROLE_SUPER_ADMIN)),
@@ -138,10 +145,19 @@ class SettingsController extends Controller
         $validated['maximum_advance_booking_days'] = $validated['maximum_advance_booking_days'] ?? 365;
         $validated['cancellation_policy_days'] = $validated['cancellation_policy_days'] ?? 7;
 
+        // Keep the existing SMTP key when the password field is left blank.
+        if (! $request->filled('smtp_password')) {
+            unset($validated['smtp_password']);
+        }
+
         // Handle logo upload
         if ($request->hasFile('logo')) {
             $logoPath = $request->file('logo')->store('logos', 'public');
             $validated['logo_path'] = $logoPath;
+        }
+
+        if ($request->hasFile('icon')) {
+            $validated['icon_path'] = $request->file('icon')->store('icons', 'public');
         }
 
         // Handle favicon upload
@@ -154,5 +170,39 @@ class SettingsController extends Controller
         $settings->save();
 
         return redirect()->back()->with('status', 'Settings updated successfully!');
+    }
+
+    /**
+     * Send a test email using the saved SMTP settings so the operator can
+     * confirm delivery before relying on it for bookings.
+     */
+    public function sendTestEmail(Request $request)
+    {
+        $validated = $request->validate([
+            'email' => ['nullable', 'email'],
+        ]);
+
+        $settings = Setting::first();
+        if (! $settings || blank($settings->smtp_host)) {
+            return response()->json(['ok' => false, 'message' => 'Save your SMTP host first.'], 422);
+        }
+
+        $to = $validated['email'] ?? $request->user()->email;
+        if (blank($to)) {
+            return response()->json(['ok' => false, 'message' => 'No recipient address available.'], 422);
+        }
+
+        try {
+            \Illuminate\Support\Facades\Mail::raw(
+                "This is a test email from {$settings->site_name}. Your SMTP settings are working correctly.",
+                function ($message) use ($to, $settings) {
+                    $message->to($to)->subject('SMTP test — '.($settings->site_name ?: config('app.name')));
+                }
+            );
+        } catch (\Throwable $e) {
+            return response()->json(['ok' => false, 'message' => 'Failed: '.$e->getMessage()], 422);
+        }
+
+        return response()->json(['ok' => true, 'message' => "Test email sent to {$to}."]);
     }
 }

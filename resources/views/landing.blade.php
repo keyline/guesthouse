@@ -9,153 +9,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>EENNRA Group of Guest Houses & Banquets</title>
+    @include('partials.favicon')
 
-    <link rel="stylesheet" href="{{ asset('landing/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="/landing/css/bootstrap.min.css">
 
-    <link rel="stylesheet" href="{{ asset('landing/css/all.min.css') }}">
+    <link rel="stylesheet" href="/landing/css/all.min.css">
 
-    <link rel="stylesheet" href="{{ asset('landing/css/owl.carousel.min.css') }}">
+    <link rel="stylesheet" href="/landing/css/owl.carousel.min.css">
 
-    <link rel="stylesheet" href="{{ asset('landing/css/owl.theme.default.min.css') }}">
+    <link rel="stylesheet" href="/landing/css/owl.theme.default.min.css">
 
-    <link rel="stylesheet" href="{{ asset('landing/css/menu.css') }}">
+    <link rel="stylesheet" href="/landing/css/menu.css">
 
-    <link rel="stylesheet" href="{{ asset('landing/css/style.css') }}">
+    <link rel="stylesheet" href="/landing/css/style.css">
 
-    <link rel="stylesheet" href="{{ asset('landing/css/responsive.css') }}">
+    <link rel="stylesheet" href="/landing/css/responsive.css">
 
 </head>
 
 <body>
 
-    <!-- top bar -->
-    <div class="top-bar">
-        <div class="container">
-            <div class="top-bar__inner">
-                <p class="top-bar__text">Discover Your Dream Guest House to Better Experience</p>
-                <a href="tel:+919830098300" class="top-bar__phone">
-                    <i class="fa-solid fa-phone"></i>
-                    +91 98300 983XX
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- header -->
-    <header class="site-header">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-12">
-            <div class="site-header__inner">
-
-                <a href="{{ url('/') }}" class="site-logo">
-                    <img src="{{ asset('landing/images/logo.svg') }}" alt="EENNRA Group of Guest Houses & Banquets">
-                </a>
-
-                <nav class="main-nav">
-                    <ul>
-                        <li><a href="#">Home</a></li>
-                        <li class="menu-item-has-children">
-                            <a href="#">Service <i class="fa-solid fa-chevron-down"></i></a>
-                            <ul class="sub-menu">
-                                <li><a href="#">Room Booking</a></li>
-                                <li><a href="#">Banquet Halls</a></li>
-                                <li><a href="#">Catering</a></li>
-                            </ul>
-                        </li>
-                        <li class="menu-item-has-children">
-                            <a href="#">Facilities <i class="fa-solid fa-chevron-down"></i></a>
-                            <ul class="sub-menu">
-                                <li><a href="#">Parking</a></li>
-                                <li><a href="#">Wi-Fi</a></li>
-                                <li><a href="#">Swimming Pool</a></li>
-                            </ul>
-                        </li>
-                    </ul>
-                </nav>
-
-                <div class="site-header__actions">
-                    <form class="header-search" role="search">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" placeholder="Search">
-                    </form>
-                    <a href="#" class="btn-book-now">Book Now</a>
-                    <button type="button" class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Open menu">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </button>
-                </div>
-
-            </div>
-            </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- mobile offcanvas menu -->
-    <div class="mobile-menu" id="mobileMenu">
-        <div class="mobile-menu__top">
-            <a href="{{ url('/') }}" class="site-logo">
-                <img src="{{ asset('landing/images/logo.svg') }}" alt="EENNRA Group of Guest Houses & Banquets">
-            </a>
-            <button type="button" class="mobile-menu__close" id="mobileMenuClose" aria-label="Close menu">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-
-        <div class="mobile-menu__body">
-
-            <form class="header-search mobile-menu__search" role="search">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" placeholder="Search">
-            </form>
-
-            <nav class="mobile-menu__nav">
-                <ul>
-                    <li><a href="#">Home</a></li>
-                    <li class="menu-item-has-children">
-                        <div class="mobile-menu__row">
-                            <a href="#">Service</a>
-                            <button type="button" class="mobile-menu__toggle" aria-label="Toggle submenu">
-                                <i class="fa-solid fa-plus"></i>
-                            </button>
-                        </div>
-                        <ul class="sub-menu">
-                            <li><a href="#">Room Booking</a></li>
-                            <li><a href="#">Banquet Halls</a></li>
-                            <li><a href="#">Catering</a></li>
-                        </ul>
-                    </li>
-                    <li class="menu-item-has-children">
-                        <div class="mobile-menu__row">
-                            <a href="#">Facilities</a>
-                            <button type="button" class="mobile-menu__toggle" aria-label="Toggle submenu">
-                                <i class="fa-solid fa-plus"></i>
-                            </button>
-                        </div>
-                        <ul class="sub-menu">
-                            <li><a href="#">Parking</a></li>
-                            <li><a href="#">Wi-Fi</a></li>
-                            <li><a href="#">Swimming Pool</a></li>
-                        </ul>
-                    </li>
-                </ul>
-            </nav>
-
-            <a href="#" class="btn-book-now mobile-menu__book">Book Now</a>
-
-            <div class="mobile-menu__footer">
-                <a href="tel:+919830098300" class="mobile-menu__phone">
-                    <i class="fa-solid fa-phone"></i>
-                    +91 98300 983XX
-                </a>
-            </div>
-
-        </div>
-    </div>
-
-    <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+    @include('partials.site-header')
 
     <!-- hero banner -->
     <section class="hero-section">
@@ -252,15 +126,15 @@
 
                                         </div>
 
-                                        <form class="hero-booking__form">
+                                        <form id="heroGuestHouseForm" class="hero-booking__form" method="GET" action="{{ route('book.search') }}">
 
                                             <div class="form-group form-group--full">
                                                 <label>Location</label>
                                                 <div class="form-control-wrap">
-                                                    <select name="property">
-                                                        <option>Select Guest House</option>
+                                                    <select name="property_id" required>
+                                                        <option value="">Select Guest House</option>
                                                         @forelse ($guestHouseProperties as $property)
-                                                            <option value="{{ $property->getRouteKey() }}">
+                                                            <option value="{{ $property->id }}">
                                                                 {{ $property->locationDropdownLabel() }}
                                                             </option>
                                                         @empty
@@ -275,38 +149,36 @@
                                                 <div class="form-group">
                                                     <label>Check In</label>
                                                     <div class="form-control-wrap">
-                                                        <input type="text" value="June 12, 2024" readonly>
-                                                        <i class="fa-regular fa-calendar"></i>
+                                                        <input id="heroCheckIn" type="date" name="check_in" value="{{ now()->toDateString() }}" min="{{ now()->toDateString() }}" required>
                                                     </div>
                                                 </div>
                                                 <div class="form-group">
                                                     <label>Check Out</label>
                                                     <div class="form-control-wrap">
-                                                        <input type="text" value="June 15, 2024" readonly>
-                                                        <i class="fa-regular fa-calendar"></i>
+                                                        <input id="heroCheckOut" type="date" name="check_out" value="{{ now()->addDay()->toDateString() }}" min="{{ now()->addDay()->toDateString() }}" required>
                                                     </div>
                                                 </div>
                                             </div>
 
                                             <div class="form-row">
                                                 <div class="form-group">
-                                                    <label>Rooms &amp; Guests</label>
+                                                    <label>Adults</label>
                                                     <div class="form-control-wrap">
-                                                        <select>
-                                                            <option>2 Adult, 1 Room</option>
-                                                            <option>2 Adult, 2 Room</option>
-                                                            <option>4 Adult, 2 Room</option>
+                                                        <select name="adults">
+                                                            @foreach (range(1, 6) as $count)
+                                                                <option value="{{ $count }}" @selected($count === 2)>{{ $count }} {{ Str::plural('Adult', $count) }}</option>
+                                                            @endforeach
                                                         </select>
                                                         <i class="fa-solid fa-chevron-down"></i>
                                                     </div>
                                                 </div>
                                                 <div class="form-group">
-                                                    <label>Room Type</label>
+                                                    <label>Children</label>
                                                     <div class="form-control-wrap">
-                                                        <select>
-                                                            <option>Select Room</option>
-                                                            <option>Deluxe Room</option>
-                                                            <option>Suite Room</option>
+                                                        <select name="children">
+                                                            @foreach (range(0, 4) as $count)
+                                                                <option value="{{ $count }}">{{ $count }} {{ Str::plural('Child', $count) }}</option>
+                                                            @endforeach
                                                         </select>
                                                         <i class="fa-solid fa-chevron-down"></i>
                                                     </div>
@@ -319,60 +191,48 @@
 
                                     <div class="hero-booking__panel" data-panel="banquets">
 
-                                        <div class="hotel-preview owl-carousel" id="hotelPreviewSliderBanquets">
-
-                                            @forelse ($banquetFeaturedProperties as $property)
-                                                @php
-                                                    $previewImage = $property->images->first();
-                                                    $previewImageUrl = $previewImage ? asset('storage/'.$previewImage->path) : asset('landing/images/formslider3.jpg');
-                                                    $previewLocation = collect([$property->location, $property->city])->filter()->unique()->join(', ');
-                                                @endphp
-                                                <div class="hotel-preview__item">
-                                                    <div class="hotel-preview__info">
-                                                        <div class="hotel-preview__badge">
-                                                            <i class="fa-solid fa-circle-check"></i>
-                                                        </div>
-                                                        <h4>{{ $property->name }}</h4>
-                                                        <p class="hotel-preview__location">{{ $previewLocation ?: $property->city }}</p>
-                                                        <p class="hotel-preview__address">
-                                                            <i class="fa-solid fa-location-dot"></i>
-                                                            <span>{{ $property->address }}</span>
-                                                        </p>
+                                        @php
+                                            $firstBanquet = $banquetHalls->first();
+                                            $bqImage = $firstBanquet?->images->first();
+                                            $bqImageUrl = $bqImage ? asset('storage/'.$bqImage->path) : asset('landing/images/formslider3.jpg');
+                                            $bqLocation = $firstBanquet ? collect([$firstBanquet->property?->location, $firstBanquet->property?->city])->filter()->unique()->join(', ') : '';
+                                        @endphp
+                                        <div class="hotel-preview">
+                                            <div class="hotel-preview__item">
+                                                <div class="hotel-preview__info">
+                                                    <div class="hotel-preview__badge">
+                                                        <i class="fa-solid fa-circle-check"></i>
                                                     </div>
-                                                    <div class="hotel-preview__thumb" style="background-image: url({{ $previewImageUrl }});"></div>
+                                                    <h4 id="banquetPreviewName">{{ $firstBanquet?->name ?? 'Select a banquet hall' }}</h4>
+                                                    <p class="hotel-preview__location" id="banquetPreviewLocation">{{ $bqLocation ?: '—' }}</p>
+                                                    <p class="hotel-preview__address">
+                                                        <i class="fa-solid fa-location-dot"></i>
+                                                        <span id="banquetPreviewAddress">{{ $firstBanquet?->property?->address ?: 'Choose a hall to see details' }}</span>
+                                                    </p>
                                                 </div>
-                                            @empty
-                                                <div class="hotel-preview__item">
-                                                    <div class="hotel-preview__info">
-                                                        <div class="hotel-preview__badge">
-                                                            <i class="fa-solid fa-circle-check"></i>
-                                                        </div>
-                                                        <h4>Eennra Grand Banquet Hall</h4>
-                                                        <p class="hotel-preview__location">Golpark, Kolkata</p>
-                                                        <p class="hotel-preview__address">
-                                                            <i class="fa-solid fa-location-dot"></i>
-                                                            <span>82C, Meghnad Saha Sarani, Southern Avenue, Golpark, near HDFC Bank, Opposite Ramkrishna Mission, Kolkata &ndash; 700029</span>
-                                                        </p>
-                                                    </div>
-                                                    <div class="hotel-preview__thumb" style="background-image: url({{ asset('landing/images/formslider3.jpg') }});"></div>
-                                                </div>
-                                            @endforelse
-
+                                                <div class="hotel-preview__thumb" id="banquetPreviewThumb" style="background-image: url('{{ $bqImageUrl }}');"></div>
+                                            </div>
                                         </div>
 
-                                        <form class="hero-booking__form">
+                                        <form id="heroBanquetForm" class="hero-booking__form">
 
                                             <div class="form-group form-group--full">
                                                 <label>Location</label>
                                                 <div class="form-control-wrap">
-                                                    <select name="property">
-                                                        <option>Select Banquet Hall</option>
-                                                        @forelse ($banquetProperties as $property)
-                                                            <option value="{{ $property->getRouteKey() }}">
-                                                                {{ $property->locationDropdownLabel() }}
+                                                    <select name="banquet" required>
+                                                        <option value="">Select Banquet Hall</option>
+                                                        @forelse ($banquetHalls as $banquet)
+                                                            @php($bImg = $banquet->images->first())
+                                                            <option value="{{ $banquet->id }}"
+                                                                data-name="{{ $banquet->name }}"
+                                                                data-location="{{ collect([$banquet->property?->location, $banquet->property?->city])->filter()->unique()->join(', ') }}"
+                                                                data-address="{{ $banquet->property?->address }}"
+                                                                data-image="{{ $bImg ? asset('storage/'.$bImg->path) : asset('landing/images/formslider3.jpg') }}"
+                                                                @selected($loop->first)>
+                                                                {{ collect([$banquet->property?->name, $banquet->property?->location, $banquet->property?->city])->filter()->unique()->join(' - ') }}
                                                             </option>
                                                         @empty
-                                                            <option disabled>No banquet halls available</option>
+                                                            <option value="" disabled>No banquet halls available</option>
                                                         @endforelse
                                                     </select>
                                                     <i class="fa-solid fa-chevron-down"></i>
@@ -383,15 +243,13 @@
                                                 <div class="form-group">
                                                     <label>Event Date</label>
                                                     <div class="form-control-wrap">
-                                                        <input type="text" value="June 12, 2024" readonly>
-                                                        <i class="fa-regular fa-calendar"></i>
+                                                        <input type="date" name="event_date" min="{{ now()->toDateString() }}" required aria-label="Event date">
                                                     </div>
                                                 </div>
                                                 <div class="form-group">
                                                     <label>Event Time</label>
                                                     <div class="form-control-wrap">
-                                                        <input type="text" value="7:00 PM" readonly>
-                                                        <i class="fa-regular fa-clock"></i>
+                                                        <input type="time" name="event_time" required aria-label="Event time">
                                                     </div>
                                                 </div>
                                             </div>
@@ -400,21 +258,31 @@
                                                 <div class="form-group">
                                                     <label>Guests</label>
                                                     <div class="form-control-wrap">
-                                                        <select>
-                                                            <option>50 Guests</option>
-                                                            <option>100 Guests</option>
-                                                            <option>200 Guests</option>
-                                                        </select>
-                                                        <i class="fa-solid fa-chevron-down"></i>
+                                                        <input
+                                                            type="number"
+                                                            name="guest_count"
+                                                            min="1"
+                                                            max="10000"
+                                                            step="1"
+                                                            inputmode="numeric"
+                                                            placeholder="Enter number of guests"
+                                                            aria-label="Number of guests"
+                                                            required
+                                                        >
+                                                        <i class="fa-solid fa-users"></i>
                                                     </div>
                                                 </div>
                                                 <div class="form-group">
-                                                    <label>Hall Type</label>
+                                                    <label>Event Type</label>
                                                     <div class="form-control-wrap">
-                                                        <select>
-                                                            <option>Select Hall</option>
-                                                            <option>Banquet Hall</option>
-                                                            <option>Rooftop Hall</option>
+                                                        <select name="event_type" aria-label="Event type" required>
+                                                            <option value="" selected disabled>Select Event Type</option>
+                                                            <option value="marriage">Marriage</option>
+                                                            <option value="anniversary">Anniversary</option>
+                                                            <option value="birthday">Birthday</option>
+                                                            <option value="corporate_party">Corporate Party</option>
+                                                            <option value="meeting">Meeting</option>
+                                                            <option value="others">Others</option>
                                                         </select>
                                                         <i class="fa-solid fa-chevron-down"></i>
                                                     </div>
@@ -429,7 +297,7 @@
 
                             </div>
 
-                            <a href="#" class="btn-book-now hero-booking__submit">Book Now</a>
+                            <a href="#" id="heroBookingSubmit" class="btn-book-now hero-booking__submit">Check Availability &amp; Book</a>
 
                         </div>
 
@@ -556,7 +424,7 @@
                             <span class="reviews">(711 Reviews)</span>
                         </div>
                         <div class="project-card__cta">
-                            <a href="#" class="btn-book-now">Book Now</a>
+                            <a href="{{ route('book.search') }}" class="btn-book-now">Book Now</a>
                             <a href="#" class="project-card__link" aria-label="View details"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
                         </div>
                     </div>
@@ -572,7 +440,7 @@
                             <span class="reviews">(711 Reviews)</span>
                         </div>
                         <div class="project-card__cta">
-                            <a href="#" class="btn-book-now">Book Now</a>
+                            <a href="{{ route('book.search') }}" class="btn-book-now">Book Now</a>
                             <a href="#" class="project-card__link" aria-label="View details"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
                         </div>
                     </div>
@@ -588,7 +456,7 @@
                             <span class="reviews">(711 Reviews)</span>
                         </div>
                         <div class="project-card__cta">
-                            <a href="#" class="btn-book-now">Book Now</a>
+                            <a href="{{ route('book.search') }}" class="btn-book-now">Book Now</a>
                             <a href="#" class="project-card__link" aria-label="View details"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
                         </div>
                     </div>
@@ -604,7 +472,7 @@
                             <span class="reviews">(711 Reviews)</span>
                         </div>
                         <div class="project-card__cta">
-                            <a href="#" class="btn-book-now">Book Now</a>
+                            <a href="{{ route('book.search') }}" class="btn-book-now">Book Now</a>
                             <a href="#" class="project-card__link" aria-label="View details"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
                         </div>
                     </div>
@@ -620,7 +488,7 @@
                             <span class="reviews">(711 Reviews)</span>
                         </div>
                         <div class="project-card__cta">
-                            <a href="#" class="btn-book-now">Book Now</a>
+                            <a href="{{ route('book.search') }}" class="btn-book-now">Book Now</a>
                             <a href="#" class="project-card__link" aria-label="View details"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
                         </div>
                     </div>
@@ -636,7 +504,7 @@
                             <span class="reviews">(711 Reviews)</span>
                         </div>
                         <div class="project-card__cta">
-                            <a href="#" class="btn-book-now">Book Now</a>
+                            <a href="{{ route('book.search') }}" class="btn-book-now">Book Now</a>
                             <a href="#" class="project-card__link" aria-label="View details"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
                         </div>
                     </div>
@@ -652,7 +520,7 @@
                             <span class="reviews">(711 Reviews)</span>
                         </div>
                         <div class="project-card__cta">
-                            <a href="#" class="btn-book-now">Book Now</a>
+                            <a href="{{ route('book.search') }}" class="btn-book-now">Book Now</a>
                             <a href="#" class="project-card__link" aria-label="View details"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
                         </div>
                     </div>
@@ -668,7 +536,7 @@
                             <span class="reviews">(711 Reviews)</span>
                         </div>
                         <div class="project-card__cta">
-                            <a href="#" class="btn-book-now">Book Now</a>
+                            <a href="{{ route('book.search') }}" class="btn-book-now">Book Now</a>
                             <a href="#" class="project-card__link" aria-label="View details"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
                         </div>
                     </div>
@@ -684,7 +552,7 @@
                             <span class="reviews">(711 Reviews)</span>
                         </div>
                         <div class="project-card__cta">
-                            <a href="#" class="btn-book-now">Book Now</a>
+                            <a href="{{ route('book.search') }}" class="btn-book-now">Book Now</a>
                             <a href="#" class="project-card__link" aria-label="View details"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
                         </div>
                     </div>
@@ -700,7 +568,7 @@
                             <span class="reviews">(711 Reviews)</span>
                         </div>
                         <div class="project-card__cta">
-                            <a href="#" class="btn-book-now">Book Now</a>
+                            <a href="{{ route('book.search') }}" class="btn-book-now">Book Now</a>
                             <a href="#" class="project-card__link" aria-label="View details"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
                         </div>
                     </div>
@@ -716,7 +584,7 @@
                             <span class="reviews">(711 Reviews)</span>
                         </div>
                         <div class="project-card__cta">
-                            <a href="#" class="btn-book-now">Book Now</a>
+                            <a href="{{ route('book.search') }}" class="btn-book-now">Book Now</a>
                             <a href="#" class="project-card__link" aria-label="View details"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
                         </div>
                     </div>
@@ -732,7 +600,7 @@
                             <span class="reviews">(711 Reviews)</span>
                         </div>
                         <div class="project-card__cta">
-                            <a href="#" class="btn-book-now">Book Now</a>
+                            <a href="{{ route('book.search') }}" class="btn-book-now">Book Now</a>
                             <a href="#" class="project-card__link" aria-label="View details"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
                         </div>
                     </div>
@@ -982,50 +850,7 @@
         </div>
     </section>
 
-    <!-- footer -->
-    <footer class="site-footer">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-12">
-
-            <div class="site-footer__top">
-
-                <div class="footer-logo">
-                    <img src="{{ asset('landing/images/logo-footer.svg') }}" alt="EENNRA Group of Guest Houses &amp; Banquets">
-                </div>
-
-                <nav class="footer-nav">
-                    <ul>
-                        <li><a href="#">Home</a></li>
-                        <li><a href="#">About Us</a></li>
-                        <li><a href="#">Service</a></li>
-                        <li><a href="#">Facilities</a></li>
-                    </ul>
-                </nav>
-
-                <div class="footer-social">
-                    <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
-                    <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
-                    <a href="#" aria-label="Twitter"><i class="fa-brands fa-twitter"></i></a>
-                    <a href="#" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
-                </div>
-
-            </div>
-
-            <div class="site-footer__divider"></div>
-
-            <div class="site-footer__bottom">
-                <p>&copy; <span id="footerYear">2026</span> EENNRA. All Rights Reserved</p>
-                <div class="footer-legal">
-                    <a href="#">Privacy Policy</a>
-                    <a href="#">Terms &amp; Conditions</a>
-                    <a href="#">FAQs</a>
-                </div>
-            </div>
-            </div>
-            </div>
-        </div>
-    </footer>
+    @include('partials.site-footer')
 
     <!-- js link -->
     <script src="{{ asset('landing/js/jquery-3.3.1.min.js') }}"></script>
@@ -1034,6 +859,63 @@
     <!-- <script src="{{ asset('landing/js/aos.js') }}"></script> -->
     <script src="{{ asset('landing/js/header.js') }}"></script>
     <script src="{{ asset('landing/js/main.js') }}"></script>
+    <script>
+        (function () {
+            const form = document.getElementById('heroGuestHouseForm');
+            const checkIn = document.getElementById('heroCheckIn');
+            const checkOut = document.getElementById('heroCheckOut');
+
+            // Keep check-out at least one night after check-in.
+            checkIn?.addEventListener('change', function () {
+                if (!this.value) return;
+                const next = new Date(this.value); next.setDate(next.getDate() + 1);
+                const min = next.toISOString().slice(0, 10);
+                checkOut.min = min;
+                if (!checkOut.value || checkOut.value <= this.value) checkOut.value = min;
+            });
+
+            // Keep the banquet header card in sync with the selected hall.
+            (function () {
+                const sel = document.querySelector('#heroBanquetForm [name="banquet"]');
+                if (!sel) return;
+                const nameEl = document.getElementById('banquetPreviewName');
+                const locEl = document.getElementById('banquetPreviewLocation');
+                const addrEl = document.getElementById('banquetPreviewAddress');
+                const thumbEl = document.getElementById('banquetPreviewThumb');
+                function sync() {
+                    const opt = sel.options[sel.selectedIndex];
+                    if (!opt || !opt.value) return;
+                    if (nameEl) nameEl.textContent = opt.dataset.name || '';
+                    if (locEl) locEl.textContent = opt.dataset.location || '—';
+                    if (addrEl) addrEl.textContent = opt.dataset.address || '';
+                    if (thumbEl && opt.dataset.image) thumbEl.style.backgroundImage = `url('${opt.dataset.image}')`;
+                }
+                sel.addEventListener('change', sync);
+                sync();
+            })();
+
+            document.getElementById('heroBookingSubmit')?.addEventListener('click', function (event) {
+                event.preventDefault();
+                const activePanel = document.querySelector('.hero-booking__panel.active')?.dataset.panel;
+
+                if (activePanel === 'banquets') {
+                    const bform = document.getElementById('heroBanquetForm');
+                    if (!bform || !bform.reportValidity()) return;
+                    const id = bform.querySelector('[name="banquet"]').value;
+                    if (!id) return;
+                    const params = new URLSearchParams();
+                    ['guest_count', 'event_type', 'event_date', 'event_time'].forEach((n) => {
+                        const v = bform.querySelector(`[name="${n}"]`)?.value;
+                        if (v) params.set(n, v);
+                    });
+                    window.location = '/banquets/' + encodeURIComponent(id) + (params.toString() ? '?' + params.toString() : '');
+                    return;
+                }
+
+                if (form && form.reportValidity()) form.submit();
+            });
+        })();
+    </script>
 
 </body>
 </html>

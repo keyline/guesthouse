@@ -20,12 +20,25 @@
                 : 'No Property Assigned');
     }
 
+    $fixedContextProperty = ($fixedPropertyContext ?? null) instanceof \App\Models\Property
+        ? $fixedPropertyContext
+        : null;
     $propertyScope = app(\App\Support\AdminPropertyScope::class);
-    $contextProperties = $propertyScope->properties($adminUser);
-    $selectedContextPropertyId = $propertyScope->selectedPropertyId($adminUser);
-    $showPropertySwitcher = $adminUser && (
-        $adminUser->hasRole(\App\Models\User::ROLE_SUPER_ADMIN) || $contextProperties->count() > 1
-    );
+
+    if ($fixedContextProperty) {
+        // A property-specific workflow must never inherit the global "All
+        // Properties" context. The route-bound property is authoritative.
+        $contextProperties = collect([$fixedContextProperty]);
+        $selectedContextPropertyId = (int) $fixedContextProperty->id;
+        $showPropertySwitcher = false;
+        $scopeLabel = $fixedContextProperty->name;
+    } else {
+        $contextProperties = $propertyScope->properties($adminUser);
+        $selectedContextPropertyId = $propertyScope->selectedPropertyId($adminUser);
+        $showPropertySwitcher = $adminUser && (
+            $adminUser->hasRole(\App\Models\User::ROLE_SUPER_ADMIN) || $contextProperties->count() > 1
+        );
+    }
 @endphp
 
 <header class="admin-topbar">
@@ -53,7 +66,18 @@
         </div>
 
         <div class="ml-auto flex shrink-0 items-center gap-2">
-            @if ($showPropertySwitcher)
+            @if ($fixedContextProperty)
+                <div class="hidden h-10 w-64 min-w-0 items-center gap-2 rounded-xl border border-sky-200 bg-sky-50 px-3 shadow-sm lg:flex" title="This page manages rules only for {{ $fixedContextProperty->locationDropdownLabel() }}">
+                    <span class="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-sky-600 text-white" aria-hidden="true">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3l8 4v5c0 5-3.4 8-8 9-4.6-1-8-4-8-9V7l8-4zm-3 9 2 2 4-4"/></svg>
+                    </span>
+                    <span class="min-w-0 leading-tight">
+                        <span class="block truncate text-xs font-black text-slate-900">{{ $fixedContextProperty->name }}</span>
+                        <span class="block truncate text-[10px] font-bold text-sky-700">Rules for this property only</span>
+                    </span>
+                    <svg class="ml-auto h-4 w-4 shrink-0 text-sky-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-label="Locked property context"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0v4m-9 0h10v9H7v-9z"/></svg>
+                </div>
+            @elseif ($showPropertySwitcher)
                 <div class="relative hidden lg:block">
                     <form method="POST" action="{{ route('admin.property-context.update') }}" class="contents">
                         @csrf

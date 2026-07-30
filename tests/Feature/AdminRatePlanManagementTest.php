@@ -8,6 +8,7 @@ use App\Models\RatePlan;
 use App\Models\Room;
 use App\Models\RoomType;
 use App\Models\User;
+use App\Support\AdminPropertyScope;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -21,7 +22,8 @@ class AdminRatePlanManagementTest extends TestCase
         [$property, , $plan] = $this->setup_();
 
         $this->actingAs($admin)
-            ->get(route('admin.rate-plans.index', ['property_id' => $property->id]))
+            ->withSession([AdminPropertyScope::SESSION_KEY => $property->id])
+            ->get(route('admin.rate-plans.index'))
             ->assertOk()
             ->assertSee('Room Types & Pricing')
             ->assertSee('Deluxe Double')
@@ -40,8 +42,8 @@ class AdminRatePlanManagementTest extends TestCase
         ]);
 
         $this->actingAs($admin)
+            ->withSession([AdminPropertyScope::SESSION_KEY => $property->id])
             ->post(route('admin.rate-plans.store'), [
-                'property_id' => $property->id,
                 'room_type_id' => $roomType->id,
                 'meal_plan' => RatePlan::MEAL_PLAN_CP,
                 'amount' => '300',
@@ -64,13 +66,32 @@ class AdminRatePlanManagementTest extends TestCase
         [$property, $roomType] = $this->setup_();
 
         $this->actingAs($admin)
+            ->withSession([AdminPropertyScope::SESSION_KEY => $property->id])
             ->post(route('admin.rate-plans.store'), [
-                'property_id' => $property->id,
                 'room_type_id' => $roomType->id,
                 'meal_plan' => RatePlan::MEAL_PLAN_EP,
                 'amount' => '1500',
             ])
             ->assertSessionHasErrors('meal_plan');
+    }
+
+    public function test_pricing_page_uses_top_banner_context_instead_of_query_property(): void
+    {
+        $admin = $this->admin();
+        [$selectedProperty, , $plan] = $this->setup_();
+        $otherProperty = $selectedProperty->replicate();
+        $otherProperty->name = 'Wrong Query Property';
+        $otherProperty->slug = 'wrong-query-property';
+        $otherProperty->email = 'other-property@example.com';
+        $otherProperty->save();
+
+        $this->actingAs($admin)
+            ->withSession([AdminPropertyScope::SESSION_KEY => $selectedProperty->id])
+            ->get(route('admin.rate-plans.index', ['property_id' => $otherProperty->id]))
+            ->assertOk()
+            ->assertSee($selectedProperty->name)
+            ->assertSee($plan->name)
+            ->assertDontSee('id="property_id"', false);
     }
 
     public function test_rack_price_update_rolls_onto_seeded_future_rates_only(): void
@@ -101,7 +122,7 @@ class AdminRatePlanManagementTest extends TestCase
     public function test_deactivated_plan_disappears_from_booking_engine(): void
     {
         $admin = $this->admin();
-        [$property, , $ep] = $this->setup_();
+        [$property, $roomType, $ep] = $this->setup_();
 
         $this->actingAs($admin)->post(route('admin.rate-plans.toggle', $ep))->assertRedirect();
 
@@ -109,7 +130,9 @@ class AdminRatePlanManagementTest extends TestCase
 
         $this->get('/book?property_id='.$property->id.'&check_in='.now()->toDateString().'&check_out='.now()->addDay()->toDateString())
             ->assertOk()
-            ->assertSee('No rooms available online');
+            ->assertSee($roomType->name)
+            ->assertSee('Rates not configured')
+            ->assertDontSee($ep->name);
     }
 
     public function test_property_manager_cannot_manage_other_property_plans(): void

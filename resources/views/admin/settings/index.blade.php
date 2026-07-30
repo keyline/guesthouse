@@ -26,6 +26,9 @@
                 <button type="button" onclick="switchTab('contact', this)" class="tab-btn px-4 py-3 border-b-2 border-transparent font-semibold text-slate-600 text-sm hover:text-slate-900" data-tab="contact">
                     Contact
                 </button>
+                <button type="button" onclick="switchTab('email', this)" class="tab-btn px-4 py-3 border-b-2 border-transparent font-semibold text-slate-600 text-sm hover:text-slate-900" data-tab="email">
+                    Email / SMTP
+                </button>
                 <button type="button" onclick="switchTab('banking', this)" class="tab-btn px-4 py-3 border-b-2 border-transparent font-semibold text-slate-600 text-sm hover:text-slate-900" data-tab="banking">
                     Banking
                 </button>
@@ -61,8 +64,17 @@
                                 @error('site_name')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                             </div>
 
-                            <!-- Logo & Favicon Row -->
-                            <div class="grid gap-3 md:grid-cols-2">
+                            <!-- Icon, Logo & Favicon Row -->
+                            <div class="grid gap-3 md:grid-cols-3">
+                                <div>
+                                    <input type="file" name="icon" accept="image/jpeg,image/png,image/svg+xml,image/webp" id="icon-input" class="hidden" onchange="previewImage(event, 'icon-preview')">
+                                    <label id="icon-upload-card" for="icon-input" class="group flex min-h-[76px] cursor-pointer items-center justify-between gap-3 rounded-lg border border-dashed border-slate-300 bg-slate-50/80 p-3 transition hover:border-sky-400 hover:bg-sky-50">
+                                        <span class="flex min-w-0 items-center gap-3"><span class="grid h-8 w-8 shrink-0 place-items-center rounded-md border border-slate-200 bg-white text-xl text-slate-400">+</span><span class="min-w-0"><span class="block text-xs font-black uppercase tracking-wide text-slate-700">Icon</span><span id="icon-upload-status" data-initial-status="{{ $settings->icon_path ? 'Click to change' : 'Click to upload' }}" class="mt-0.5 block text-xs font-bold text-slate-600">{{ $settings->icon_path ? 'Click to change' : 'Click to upload' }}</span><span class="mt-0.5 block truncate text-[11px] text-slate-500">Navigation/app mark · Square · Max 1MB</span></span></span>
+                                        <span id="icon-preview" data-upload-preview="icon" class="ml-auto grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-md border border-slate-200 bg-white text-slate-400 shadow-sm">@if($settings->icon_path)<img src="{{ asset('storage/'.$settings->icon_path) }}" alt="Icon" class="max-h-full max-w-full object-contain p-1.5">@else<span class="text-[9px] font-bold uppercase">Preview</span>@endif</span>
+                                    </label>
+                                    <button id="icon-clear-button" type="button" onclick="removeImage('icon', event)" class="mt-1 hidden text-[11px] font-bold text-slate-500 hover:text-red-600">Clear selected file</button>
+                                    @error('icon')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                                </div>
                                 <!-- Logo Upload -->
                                 <div>
                                     <input type="file" name="logo" accept="image/jpeg,image/png,image/svg,image/webp" id="logo-input" class="hidden" onchange="previewImage(event, 'logo-preview')">
@@ -308,6 +320,61 @@
                 </section>
             </div>
 
+            <!-- EMAIL / SMTP TAB -->
+            <div id="email" class="tab-content hidden space-y-4">
+                <section class="border border-slate-200 bg-white rounded-lg overflow-hidden">
+                    <div class="border-b border-slate-200 bg-slate-50 px-5 py-3">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-600">Outgoing Email (SMTP)</h3>
+                    </div>
+                    <div class="p-5 space-y-4">
+                        <div class="flex items-start gap-3 rounded-lg border border-sky-100 bg-sky-50 px-4 py-3">
+                            <span class="text-lg">✉️</span>
+                            <p class="text-xs font-semibold text-sky-800">Booking confirmations, OTPs and notifications are sent through this SMTP server. These settings work with <a href="https://www.brevo.com/" target="_blank" rel="noopener" class="font-black underline">Brevo</a> — create a free account, then find your credentials under <strong>Brevo → SMTP &amp; API → SMTP</strong>. Defaults below are pre-filled for Brevo.</p>
+                        </div>
+                        <div class="grid gap-4 md:grid-cols-2">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600">SMTP Host</label>
+                                <input type="text" name="smtp_host" value="{{ old('smtp_host', $settings->smtp_host) }}" placeholder="smtp-relay.brevo.com" class="h-9 w-full rounded border border-slate-300 px-3 text-sm outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600 transition">
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600">Port</label>
+                                    <input type="number" name="smtp_port" value="{{ old('smtp_port', $settings->smtp_port) }}" placeholder="587" class="h-9 w-full rounded border border-slate-300 px-3 text-sm outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600 transition">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600">Encryption</label>
+                                    <select name="smtp_encryption" class="h-9 w-full rounded border border-slate-300 bg-white px-2.5 text-sm outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600 transition">
+                                        <option value="tls" @selected(old('smtp_encryption', $settings->smtp_encryption ?: 'tls') === 'tls')>TLS (587)</option>
+                                        <option value="ssl" @selected(old('smtp_encryption', $settings->smtp_encryption ?: 'tls') === 'ssl')>SSL (465)</option>
+                                        <option value="none" @selected(old('smtp_encryption', $settings->smtp_encryption ?: 'tls') === 'none')>None</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600">SMTP Login / Username</label>
+                                <input type="text" name="smtp_username" value="{{ old('smtp_username', $settings->smtp_username) }}" placeholder="you@example.com" autocomplete="off" class="h-9 w-full rounded border border-slate-300 px-3 text-sm outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600 transition">
+                                <p class="mt-1 text-[11px] font-semibold text-slate-400">Your Brevo SMTP login (shown on the SMTP page).</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600">SMTP Password / Key</label>
+                                <input type="password" name="smtp_password" value="" placeholder="{{ $settings->smtp_password ? '•••••••• (unchanged)' : 'Your Brevo SMTP key' }}" autocomplete="new-password" class="h-9 w-full rounded border border-slate-300 px-3 text-sm outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600 transition">
+                                <p class="mt-1 text-[11px] font-semibold text-slate-400">Leave blank to keep the current key. Use the Brevo <strong>SMTP key</strong>, not your login password.</p>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-bold text-slate-600">"From" Email Address</label>
+                                <input type="email" name="notification_email_sender" value="{{ old('notification_email_sender', $settings->notification_email_sender) }}" placeholder="reservations@yourhotel.com" class="h-9 w-full rounded border border-slate-300 px-3 text-sm outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600 transition">
+                                <p class="mt-1 text-[11px] font-semibold text-slate-400">Must be a sender you've verified in Brevo, or delivery will fail.</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-3 border-t border-slate-100 pt-4">
+                            <button type="button" onclick="sendTestEmail(this)" class="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 text-sm font-bold text-slate-700 hover:bg-slate-50">Send test email</button>
+                            <span data-test-email-result class="text-xs font-bold"></span>
+                            <span class="text-[11px] font-semibold text-slate-400">Save your settings first, then send a test to your own inbox.</span>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
             <!-- BANKING TAB -->
             <div id="banking" class="tab-content hidden space-y-4">
                 <section class="border border-slate-200 bg-white rounded-lg overflow-hidden">
@@ -486,6 +553,28 @@
     </form>
 
     <script>
+        function sendTestEmail(btn) {
+            const result = document.querySelector('[data-test-email-result]');
+            btn.disabled = true; const label = btn.textContent; btn.textContent = 'Sending…';
+            result.textContent = ''; result.className = 'text-xs font-bold';
+            fetch(@json(route('admin.settings.test-email')), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || @json(csrf_token()),
+                },
+                body: JSON.stringify({}),
+            })
+            .then(async (r) => ({ ok: r.ok, data: await r.json().catch(() => ({})) }))
+            .then(({ ok, data }) => {
+                result.textContent = data.message || (ok ? 'Sent.' : 'Failed.');
+                result.classList.add(ok ? 'text-emerald-600' : 'text-rose-600');
+            })
+            .catch(() => { result.textContent = 'Request failed.'; result.classList.add('text-rose-600'); })
+            .finally(() => { btn.disabled = false; btn.textContent = label; });
+        }
+
         function switchTab(tabName, button) {
             // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));

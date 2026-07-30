@@ -12,6 +12,18 @@ use Illuminate\Validation\Validator;
 
 class RoomRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        $room = $this->route('room');
+        $propertyId = $room instanceof Room
+            ? $room->property_id
+            : app(AdminPropertyScope::class)->selectedPropertyId($this->user());
+
+        // Property is controlled by the shared header context, never by a
+        // hidden/stale browser value.
+        $this->merge(['property_id' => $propertyId]);
+    }
+
     public function authorize(): bool
     {
         return $this->user()?->isAdmin() === true;
@@ -29,7 +41,7 @@ class RoomRequest extends FormRequest
             'room_type_id' => [
                 'required',
                 'integer',
-                Rule::exists(RoomType::class, 'id'),
+                Rule::exists(RoomType::class, 'id')->where('status', RoomType::STATUS_ACTIVE),
             ],
             'room_number' => [
                 'required',
@@ -44,6 +56,12 @@ class RoomRequest extends FormRequest
             'is_smoking' => ['boolean'],
             'is_accessible' => ['boolean'],
             'notes' => ['nullable', 'string', 'max:2000'],
+            'amenity_present' => ['nullable', 'array'],
+            'amenity_present.*' => ['integer', Rule::exists('amenities', 'id')->where('is_active', true)],
+            'amenity_missing' => ['nullable', 'array'],
+            'amenity_missing.*' => ['integer', Rule::exists('amenities', 'id')->where('is_active', true)],
+            'amenity_state' => ['nullable', 'array'],
+            'amenity_state.*' => ['nullable', Rule::in(['inherit', 'present', 'missing'])],
         ];
     }
 

@@ -38,6 +38,7 @@ class BanquetController extends Controller
 
     public function create(AdminPropertyScope $scope): View
     {
+        $propertyContext = $scope->properties()->firstWhere('id', $scope->selectedPropertyId());
         return view('admin.banquets.create', [
             'banquet' => new Banquet([
                 'property_id' => $scope->selectedPropertyId(),
@@ -45,6 +46,7 @@ class BanquetController extends Controller
                 'currency' => 'INR',
             ]),
             'properties' => $this->properties($scope),
+            'propertyContext' => $propertyContext,
             'statuses' => $this->statuses(),
             'amenities' => $this->getAmenities(),
             'amenityIconLibrary' => AmenityIconLibrary::all(),
@@ -54,10 +56,13 @@ class BanquetController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, AdminPropertyScope $scope): RedirectResponse
     {
+        $propertyId = $scope->selectedPropertyId();
+        if (! $propertyId || ! $scope->canAccessProperty($propertyId)) {
+            return back()->withInput()->withErrors(['property_id' => 'Select one property from the top banner before creating a banquet.']);
+        }
         $validated = $request->validate([
-            'property_id' => 'required|exists:properties,id',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'capacity_min' => 'required|integer|min:1',
@@ -71,6 +76,7 @@ class BanquetController extends Controller
             'banquet_images' => 'nullable|array|max:10',
             'banquet_images.*' => 'image|max:5120|mimes:jpg,jpeg,png,webp',
         ]);
+        $validated['property_id'] = $propertyId;
 
         $banquet = Banquet::create($validated);
         $this->handleImageUpload($request, $banquet);
@@ -92,9 +98,11 @@ class BanquetController extends Controller
     {
         abort_unless($scope->canAccessProperty($banquet->property_id), 404);
 
+        $banquet->load('property');
         return view('admin.banquets.edit', [
             'banquet' => $banquet,
             'properties' => $this->properties($scope),
+            'propertyContext' => $banquet->property,
             'statuses' => $this->statuses(),
             'amenities' => $this->getAmenities(),
             'amenityIconLibrary' => AmenityIconLibrary::all(),
@@ -109,7 +117,6 @@ class BanquetController extends Controller
         abort_unless($scope->canAccessProperty($banquet->property_id), 404);
 
         $validated = $request->validate([
-            'property_id' => 'required|exists:properties,id',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'capacity_min' => 'required|integer|min:1',

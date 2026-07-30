@@ -91,13 +91,30 @@ class AdminUserManagementTest extends TestCase
                 'is_active' => '1',
                 'property_ids' => [$secondProperty->id],
             ])
-            ->assertRedirect(route('admin.admin-users.show', $manager));
+            ->assertRedirect(route('admin.admin-users.index'));
 
         $this->assertDatabaseHas('users', [
             'id' => $manager->id,
             'name' => 'Updated Manager',
         ]);
         $this->assertSame([$secondProperty->id], $manager->fresh()->managedProperties()->pluck('properties.id')->all());
+    }
+
+    public function test_admin_user_routes_use_opaque_public_ids(): void
+    {
+        $superAdmin = $this->adminUser();
+        $manager = User::factory()->create([
+            'role' => User::ROLE_PROPERTY_MANAGER,
+            'is_active' => true,
+        ]);
+
+        $url = route('admin.admin-users.edit', $manager);
+
+        $this->assertNotNull($manager->public_id);
+        $this->assertStringContainsString($manager->public_id, $url);
+        $this->assertStringNotContainsString('/admin-users/'.$manager->id.'/edit', $url);
+
+        $this->actingAs($superAdmin)->get($url)->assertOk();
     }
 
     public function test_admin_can_edit_own_profile_without_changing_access(): void

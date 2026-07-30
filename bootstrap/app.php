@@ -17,6 +17,14 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => EnsureUserHasRole::class,
         ]);
 
+        // Logout is idempotent and needs no CSRF protection. Exempting it stops
+        // stale tokens (e.g. a page restored from the browser's back-forward
+        // cache after an OTP login refreshed the token) from throwing 419.
+        $middleware->validateCsrfTokens(except: [
+            'account/logout',
+            'admin/logout',
+        ]);
+
         $middleware->redirectGuestsTo('/admin/login');
     })
     ->withExceptions(function (Exceptions $exceptions): void {

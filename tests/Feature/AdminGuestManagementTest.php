@@ -38,13 +38,15 @@ class AdminGuestManagementTest extends TestCase
                 'name' => 'Riya Sen',
                 'email' => 'riya@example.com',
                 'phone' => '+91 90000 00001',
+                'phone_national' => '9000000001',
             ]))
             ->assertRedirect();
 
         $this->assertDatabaseHas('users', [
             'name' => 'Riya Sen',
             'email' => 'riya@example.com',
-            'phone' => '+91 90000 00001',
+            'phone' => '+919000000001',
+            'phone_e164' => '+919000000001',
             'role' => User::ROLE_CUSTOMER,
             'is_active' => true,
         ]);
@@ -99,6 +101,53 @@ class AdminGuestManagementTest extends TestCase
         ]);
     }
 
+    public function test_admin_can_create_corporate_guest_with_gst_office_details(): void
+    {
+        $admin = $this->adminUser();
+
+        $this->actingAs($admin)
+            ->post(route('admin.guests.store'), $this->guestPayload([
+                'name' => 'Ananya Bose', 'email' => 'ananya@acme.example', 'customer_type' => 'corporate',
+                'corporate_legal_name' => 'ACME Hospitality Private Limited',
+                'corporate_trade_name' => 'ACME Hospitality', 'corporate_gstin' => '19ABCDE1234F1Z5',
+                'corporate_pan' => 'ABCDE1234F', 'corporate_contact_name' => 'Accounts Desk',
+                'corporate_email' => 'accounts@acme.example', 'corporate_phone' => '+91 33 4000 0000',
+                'corporate_address_line_1' => '20 Business Park', 'corporate_city' => 'Kolkata',
+                'corporate_state' => 'West Bengal', 'corporate_postal_code' => '700091', 'corporate_country' => 'India',
+            ]))
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('corporates', ['gstin' => '19ABCDE1234F1Z5', 'legal_name' => 'ACME Hospitality Private Limited']);
+        $this->assertDatabaseHas('users', ['email' => 'ananya@acme.example', 'customer_type' => 'corporate']);
+    }
+
+    public function test_front_desk_can_find_returning_guest_by_international_mobile(): void
+    {
+        $admin = $this->adminUser();
+        $guest = User::factory()->create([
+            'role' => User::ROLE_CUSTOMER, 'is_active' => true,
+            'phone' => '+919876543210', 'phone_country_code' => '+91',
+            'phone_national' => '9876543210', 'phone_e164' => '+919876543210',
+        ]);
+
+        $this->actingAs($admin)
+            ->getJson(route('admin.guests.lookup', ['country_code' => '+91', 'mobile' => '98765 43210']))
+            ->assertOk()
+            ->assertJsonPath('found', true)
+            ->assertJsonPath('guest.id', $guest->id)
+            ->assertJsonPath('phone_e164', '+919876543210');
+    }
+
+    public function test_duplicate_normalized_mobile_is_rejected(): void
+    {
+        $admin = $this->adminUser();
+        User::factory()->create(['role' => User::ROLE_CUSTOMER, 'phone_e164' => '+919000000000']);
+
+        $this->actingAs($admin)
+            ->post(route('admin.guests.store'), $this->guestPayload())
+            ->assertSessionHasErrors('phone_national');
+    }
+
     public function test_customer_dashboard_shows_booking_history(): void
     {
         $guest = User::factory()->create([
@@ -117,9 +166,10 @@ class AdminGuestManagementTest extends TestCase
         $this->actingAs($guest)
             ->get(route('customer.dashboard'))
             ->assertOk()
-            ->assertSee('Booking history')
+            ->assertSee('My Account')
             ->assertSee('Central Guest House')
-            ->assertSee('101 / Standard Double');
+            ->assertSee('Standard Double')
+            ->assertSee('Room 101');
     }
 
     public function test_admin_can_deactivate_guest_without_deleting_history(): void
@@ -161,12 +211,21 @@ class AdminGuestManagementTest extends TestCase
             'password_confirmation' => 'StrongPass123',
             'is_active' => '1',
             'phone' => '+91 90000 00000',
+            'phone_country_code' => '+91',
+            'phone_national' => '9000000000',
             'date_of_birth' => '1990-01-01',
             'gender' => 'Female',
             'nationality' => 'Indian',
             'id_document_type' => 'Passport',
             'id_document_number' => 'P1234567',
             'address' => '12 Guest Road',
+            'customer_type' => 'individual',
+            'address_line_1' => '12 Guest Road',
+            'address_line_2' => null,
+            'city' => 'Kolkata',
+            'state' => 'West Bengal',
+            'postal_code' => '700016',
+            'country' => 'India',
             'guest_notes' => 'Prefers quiet rooms.',
         ], $overrides);
     }

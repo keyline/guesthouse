@@ -197,6 +197,7 @@ class AdminPropertyManagementTest extends TestCase
                 'name' => 'Conference Wi-Fi',
                 'icon' => 'wifi',
                 'category' => 'connectivity',
+                'scope' => 'room_category',
                 'sort_order' => 5,
                 'is_active' => '1',
             ])
@@ -206,6 +207,7 @@ class AdminPropertyManagementTest extends TestCase
             'name' => 'Conference Wi-Fi',
             'icon' => 'wifi',
             'category' => 'connectivity',
+            'scope' => 'room_category',
             'is_active' => true,
         ]);
     }

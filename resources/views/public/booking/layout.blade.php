@@ -5,32 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Book Your Stay') | {{ config('app.name') }}</title>
+    @include('partials.favicon')
 
-    @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @endif
+    <link rel="stylesheet" href="/landing/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/landing/css/all.min.css">
+    <link rel="stylesheet" href="/landing/css/owl.carousel.min.css">
+    <link rel="stylesheet" href="/landing/css/menu.css">
+    <link rel="stylesheet" href="/landing/css/style.css">
+    <link rel="stylesheet" href="/landing/css/responsive.css">
+    <link rel="stylesheet" href="/landing/css/booking.css">
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-900 antialiased">
-    <header class="border-b border-slate-200 bg-white">
-        <div class="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
-            <a href="{{ url('/') }}" class="text-sm font-black uppercase tracking-[0.2em] text-sky-700">EENNRA <span class="text-slate-400">Guest Houses</span></a>
-            <nav class="flex items-center gap-4 text-sm font-bold text-slate-600">
-                <a href="{{ route('book.search') }}" class="hover:text-sky-700">Book a Stay</a>
-                @auth
-                    <a href="{{ route('customer.dashboard') }}" class="hover:text-sky-700">My Bookings</a>
-                @else
-                    <a href="{{ route('customer.login') }}" class="hover:text-sky-700">Sign in</a>
-                @endauth
-            </nav>
-        </div>
-    </header>
+<body class="booking-page">
 
-    <main class="mx-auto max-w-5xl px-4 py-8">
-        @yield('content')
+    @include('partials.site-header')
+
+    <main class="booking-main">
+        <div class="container">
+            @yield('content')
+        </div>
     </main>
 
-    <footer class="border-t border-slate-200 bg-white py-6 text-center text-xs font-semibold text-slate-500">
-        Bookings are confirmed by the property. Need help? Call +91 98300 98300.
-    </footer>
+    @include('partials.site-footer')
+
+    <script src="{{ asset('landing/js/jquery-3.3.1.min.js') }}"></script>
+    <script src="{{ asset('landing/js/bootstrap.min.js') }}"></script>
+    <script src="{{ asset('landing/js/owl.carousel.min.js') }}"></script>
+    <script src="{{ asset('landing/js/header.js') }}"></script>
+    <script src="{{ asset('landing/js/main.js') }}"></script>
+    @yield('scripts')
 </body>
 </html>

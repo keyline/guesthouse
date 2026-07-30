@@ -7,21 +7,16 @@
     <h2 class="text-lg font-black">Banquet Details</h2>
     <div class="mt-5 grid gap-4 md:grid-cols-2">
         <div>
-            <label for="property_id" class="text-sm font-bold text-slate-700">Property</label>
-            <select id="property_id" name="property_id" required class="mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm">
-                <option value="">Select property</option>
-                @foreach ($properties as $property)
-                    @php
-                        $statusLabel = match($property->status) {
-                            'active' => '✓ Active',
-                            'draft' => '⊙ Draft',
-                            'inactive' => '✕ Inactive',
-                            default => $property->status,
-                        };
-                    @endphp
-                    <option value="{{ $property->id }}" @selected((int) old('property_id', $banquet->property_id) === $property->id)>{{ $property->name }} — {{ $statusLabel }}</option>
-                @endforeach
-            </select>
+            <label class="text-sm font-bold text-slate-700">Property</label>
+            @if($propertyContext)
+                <div class="mt-2 flex h-11 items-center justify-between rounded-lg border border-sky-200 bg-sky-50 px-3">
+                    <span class="min-w-0 truncate text-sm font-black text-sky-900">🏨 {{ $propertyContext->name }}</span>
+                    <span class="ml-2 shrink-0 rounded-full bg-white px-2 py-1 text-[9px] font-black uppercase tracking-wide text-sky-700 ring-1 ring-sky-200">{{ $banquet->exists ? 'Assigned' : 'Top selection' }}</span>
+                </div>
+                <p class="mt-1 text-[10px] font-semibold text-slate-500">{{ $banquet->exists ? 'Property assignment is fixed to protect existing pricing and bookings.' : 'Taken from the property selected in the top banner.' }}</p>
+            @else
+                <div class="mt-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800">Select one property from the top banner before creating this banquet.</div>
+            @endif
             @error('property_id')<p class="mt-2 text-sm font-semibold text-rose-700">{{ $message }}</p>@enderror
         </div>
 

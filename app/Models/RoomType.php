@@ -25,6 +25,11 @@ class RoomType extends Model
         'status',
         'max_adults',
         'max_children',
+        'is_pet_friendly',
+        'extra_bed_available',
+        'max_extra_beds',
+        'extra_bed_charge_minor',
+        'extra_bed_charge_basis',
         'sort_order',
         'description',
     ];
@@ -34,6 +39,10 @@ class RoomType extends Model
         return [
             'max_adults' => 'integer',
             'max_children' => 'integer',
+            'is_pet_friendly' => 'boolean',
+            'extra_bed_available' => 'boolean',
+            'max_extra_beds' => 'integer',
+            'extra_bed_charge_minor' => 'integer',
             'sort_order' => 'integer',
         ];
     }
@@ -41,15 +50,18 @@ class RoomType extends Model
     protected static function booted(): void
     {
         static::creating(function (RoomType $roomType): void {
-            if (! $roomType->code) {
-                $roomType->code = static::makeCode($roomType->name);
-            }
+            if (! $roomType->code) $roomType->code = static::uniqueCode($roomType->name);
         });
     }
 
     public function rooms(): HasMany
     {
         return $this->hasMany(Room::class);
+    }
+
+    public function propertyConfigurations(): HasMany
+    {
+        return $this->hasMany(PropertyRoomType::class);
     }
 
     public function bookings(): HasMany
@@ -79,8 +91,22 @@ class RoomType extends Model
 
     public static function makeCode(string $name): string
     {
-        $code = Str::upper(Str::slug($name, '-'));
+        $code = Str::lower(Str::slug($name, '-'));
 
-        return Str::limit($code ?: 'ROOM', 40, '');
+        return Str::limit($code ?: 'room-type', 40, '');
+    }
+
+    public static function uniqueCode(string $name, ?int $ignoreId = null): string
+    {
+        $base = static::makeCode($name);
+        $candidate = $base;
+        $number = 2;
+
+        while (static::query()->where('code', $candidate)->when($ignoreId, fn ($query) => $query->whereKeyNot($ignoreId))->exists()) {
+            $suffix = '-'.$number++;
+            $candidate = Str::limit($base, 40 - strlen($suffix), '').$suffix;
+        }
+
+        return $candidate;
     }
 }

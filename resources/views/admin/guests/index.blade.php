@@ -50,7 +50,7 @@
                 <tbody class="divide-y divide-slate-100">
                     @forelse ($guests as $guest)
                         <tr class="hover:bg-slate-50">
-                            <td class="px-5 py-4 font-black">{{ $guest->name }}</td>
+                            <td class="px-5 py-4"><span class="block font-black">{{ $guest->name }}</span>@if($guest->corporate)<span class="mt-1 inline-flex rounded bg-blue-50 px-1.5 py-0.5 text-[9px] font-black uppercase text-blue-700">{{ $guest->corporate->trade_name ?: $guest->corporate->legal_name }}</span>@endif</td>
                             <td class="px-5 py-4">
                                 <span class="block font-semibold text-slate-700">{{ $guest->email }}</span>
                                 <span class="text-xs font-semibold text-slate-500">{{ $guest->phone ?: 'No phone' }}</span>

@@ -66,7 +66,14 @@ class AdminActivityLogTest extends TestCase
         ]);
     }
 
-    public function test_online_booking_is_logged_as_system(): void
+    private ?User $bookingCustomer = null;
+
+    private function customer(): User
+    {
+        return $this->bookingCustomer ??= User::factory()->create(['role' => User::ROLE_CUSTOMER, 'is_active' => true, 'name' => 'Priya Sharma']);
+    }
+
+    public function test_online_booking_is_logged_by_the_signed_in_customer(): void
     {
         [$property, $roomType] = $this->propertyWithRoomType();
 
@@ -86,19 +93,21 @@ class AdminActivityLogTest extends TestCase
             'default_price_minor' => 200000,
         ]);
 
-        $this->post('/book', [
-            'rate_plan_id' => $plan->id,
+        $this->actingAs($this->customer())->post('/book', [
+            'rooms' => [$plan->id => 1],
             'check_in' => now()->toDateString(),
             'check_out' => now()->addDay()->toDateString(),
             'guest_name' => 'Priya Sharma',
             'guest_phone' => '+91 98000 00000',
             'adults' => 1,
             'children' => 0,
+            'payment_mode' => 'pay_at_property',
         ])->assertRedirect();
 
         $log = AdminActivityLog::query()->where('subject_type', 'Booking')->firstOrFail();
 
-        $this->assertSame('System', $log->user_name);
+        // Online bookings now require a signed-in customer, so they are the actor.
+        $this->assertSame('Priya Sharma', $log->user_name);
         $this->assertSame('created', $log->action);
     }
 

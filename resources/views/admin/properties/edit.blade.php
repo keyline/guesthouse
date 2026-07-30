@@ -5,6 +5,7 @@
 @section('page-title', 'Edit '.$property->name)
 
 @section('header-actions')
+    <a href="{{ route('admin.properties.rules.edit', $property) }}" class="inline-flex h-10 items-center rounded-lg bg-indigo-600 px-4 text-sm font-bold text-white shadow-sm">Property Rules</a>
     <a href="{{ route('admin.properties.index') }}" class="inline-flex h-10 items-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-bold text-slate-700 shadow-sm">Back to Properties</a>
 @endsection
 

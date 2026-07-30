@@ -17,6 +17,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Admin') | {{ config('app.name', 'Property Manager') }}</title>
+    @include('partials.favicon')
 
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
         @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -598,7 +599,8 @@
 
             <section class="w-full px-4 py-4 lg:px-5">
                 @hasSection('header-actions')
-                    <div class="mb-4 flex justify-end">
+                    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+                        <div class="admin-page-lead min-w-0">@yield('header-lead')</div>
                         <div class="admin-page-actions flex flex-wrap items-center justify-end gap-2">
                             @yield('header-actions')
                         </div>
@@ -626,20 +628,25 @@
             adminShell.classList.remove('is-mobile-open');
         }
 
+        function closeOtherNavGroups(currentGroup = null) {
+            navGroups.forEach((group) => {
+                if (group !== currentGroup) {
+                    group.classList.remove('is-open');
+                    group.querySelector('.admin-nav-parent')?.setAttribute('aria-expanded', 'false');
+                }
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             setCollapsed(localStorage.getItem('adminSidebarCollapsed') === 'true');
 
-            navGroups.forEach((group) => {
-                const storedState = localStorage.getItem('adminNavGroup:' + group.dataset.navGroup);
+            const activeGroup = navGroups.find(group => group.querySelector('.is-active'));
+            closeOtherNavGroups(activeGroup ?? null);
 
-                if (storedState === 'open') {
-                    group.classList.add('is-open');
-                }
-
-                if (storedState === 'closed' && ! group.querySelector('.is-active')) {
-                    group.classList.remove('is-open');
-                }
-            });
+            if (activeGroup) {
+                activeGroup.classList.add('is-open');
+                activeGroup.querySelector('.admin-nav-parent')?.setAttribute('aria-expanded', 'true');
+            }
         });
 
         sidebarToggle?.addEventListener('click', () => {
@@ -658,15 +665,16 @@
             button?.addEventListener('click', () => {
                 if (adminShell.classList.contains('is-collapsed') && window.innerWidth >= 1024) {
                     setCollapsed(false);
+                    closeOtherNavGroups(group);
                     group.classList.add('is-open');
                     button.setAttribute('aria-expanded', 'true');
-                    localStorage.setItem('adminNavGroup:' + group.dataset.navGroup, 'open');
                     return;
                 }
 
-                group.classList.toggle('is-open');
-                button.setAttribute('aria-expanded', group.classList.contains('is-open') ? 'true' : 'false');
-                localStorage.setItem('adminNavGroup:' + group.dataset.navGroup, group.classList.contains('is-open') ? 'open' : 'closed');
+                const shouldOpen = !group.classList.contains('is-open');
+                closeOtherNavGroups(group);
+                group.classList.toggle('is-open', shouldOpen);
+                button.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
             });
         });
 

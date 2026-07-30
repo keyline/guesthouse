@@ -5,7 +5,7 @@
 @section('page-title', 'Edit '.$roomType->name)
 
 @section('header-actions')
-    <a href="{{ route('admin.room-types.show', $roomType) }}" class="inline-flex h-10 items-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-bold text-slate-700 shadow-sm">View Room Type</a>
+    <a href="{{ route('admin.room-types.show', $roomType) }}{{ $selectedPropertyId ? '#property-config-'.$selectedPropertyId : '' }}" class="inline-flex h-10 items-center rounded-lg bg-sky-600 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-sky-700">Configure Category Amenities</a>
 @endsection
 
 @section('content')
